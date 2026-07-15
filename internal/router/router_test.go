@@ -166,6 +166,43 @@ func TestProviderPinning(t *testing.T) {
 	}
 }
 
+func pricedRegistry() *Registry {
+	reg := NewRegistry()
+	reg.Load([]store.Model{
+		{LogicalName: "m", Provider: "a", ProviderModelID: "am", Priority: 0, InputPricePerToken: 1.0, OutputPricePerToken: 1.0, Active: true},
+		{LogicalName: "m", Provider: "b", ProviderModelID: "bm", Priority: 1, InputPricePerToken: 0.1, OutputPricePerToken: 0.1, Active: true},
+	})
+	return reg
+}
+
+func TestSortByCost(t *testing.T) {
+	// Default (priority order): the primary "a" is used.
+	a := &fakeProvider{name: "a", resp: okResp()}
+	b := &fakeProvider{name: "b", resp: okResp()}
+	rt := New(pricedRegistry(), map[string]llm.Provider{"a": a, "b": b}, fakeResolver{}, NewBreakers(5, time.Minute), discardLog())
+	_, route, err := rt.Chat(context.Background(), "org",
+		&llm.ChatRequest{Model: "m", Messages: []llm.Message{{Content: "hi"}}}, Options{})
+	if err != nil || route.Provider != "a" {
+		t.Fatalf("default route = %q err=%v, want a", route.Provider, err)
+	}
+
+	// SortByCost: "b" is cheaper, so it is tried first.
+	a2 := &fakeProvider{name: "a", resp: okResp()}
+	b2 := &fakeProvider{name: "b", resp: okResp()}
+	rt2 := New(pricedRegistry(), map[string]llm.Provider{"a": a2, "b": b2}, fakeResolver{}, NewBreakers(5, time.Minute), discardLog())
+	_, route2, err := rt2.Chat(context.Background(), "org",
+		&llm.ChatRequest{Model: "m", Messages: []llm.Message{{Content: "hi"}}}, Options{SortByCost: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if route2.Provider != "b" {
+		t.Errorf("cost route = %q, want b (cheapest)", route2.Provider)
+	}
+	if a2.calls != 0 || b2.calls != 1 {
+		t.Errorf("calls a=%d b=%d, want a=0 b=1", a2.calls, b2.calls)
+	}
+}
+
 func TestCircuitBreakerLifecycle(t *testing.T) {
 	now := time.Unix(1000, 0)
 	b := NewBreakers(2, time.Minute)

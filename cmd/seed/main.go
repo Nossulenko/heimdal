@@ -30,14 +30,21 @@ type modelSeed struct {
 	priority int
 }
 
-// Prices are USD per token (published $/M divided by 1e6).
+// Prices are USD per token (published $/M divided by 1e6). Illustrative demo
+// catalog — operators adjust to current provider pricing.
 var seedModels = []modelSeed{
 	{"gpt-4o-mini", "openai", "gpt-4o-mini", 0.15e-6, 0.60e-6, 0},
+	{"gpt-4o", "openai", "gpt-4o", 2.50e-6, 10.00e-6, 0},
+	{"gpt-4.1-mini", "openai", "gpt-4.1-mini", 0.40e-6, 1.60e-6, 0},
 	{"claude-3-5-haiku", "anthropic", "claude-3-5-haiku-latest", 0.80e-6, 4.00e-6, 0},
+	{"claude-sonnet-4-5", "anthropic", "claude-sonnet-4-5", 3.00e-6, 15.00e-6, 0},
 	{"gemini-2.5-flash", "google", "gemini-2.5-flash", 0.30e-6, 2.50e-6, 0},
-	// A logical "auto" model with cross-provider fallback (explicit candidates).
+	{"gemini-2.5-pro", "google", "gemini-2.5-pro", 1.25e-6, 10.00e-6, 0},
+	// A logical "auto" model spanning providers (explicit candidates, priority
+	// order). Combine with the "x-route: cost" header to pick the cheapest.
 	{"auto", "openai", "gpt-4o-mini", 0.15e-6, 0.60e-6, 0},
-	{"auto", "anthropic", "claude-3-5-haiku-latest", 0.80e-6, 4.00e-6, 1},
+	{"auto", "google", "gemini-2.5-flash", 0.30e-6, 2.50e-6, 1},
+	{"auto", "anthropic", "claude-3-5-haiku-latest", 0.80e-6, 4.00e-6, 2},
 }
 
 func main() {

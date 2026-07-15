@@ -22,6 +22,7 @@ and the providers' own public API docs. See `docs/DESIGN.md` for the full design
 - **Routing**: logical model → ordered provider candidates, with fallback on
   transient failures, per-provider circuit breaking, and explicit-only
   cross-provider fallback. Fallback happens only before the first streamed byte.
+  Send `x-route: cost` to route a multi-provider model to the cheapest candidate.
 - **Auth**: gateway API keys hashed with HMAC-SHA-256 (+ server pepper);
   dashboard users with bcrypt passwords; stateless signed session tokens.
 - **Provider credentials**: encrypted at rest with AES-256-GCM (`key_version`

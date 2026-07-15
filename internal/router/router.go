@@ -1,10 +1,12 @@
 package router
 
 import (
+	"cmp"
 	"context"
 	"errors"
 	"fmt"
 	"log/slog"
+	"slices"
 	"strings"
 
 	"github.com/nossulenko/heimdal/internal/cryptox"
@@ -59,6 +61,10 @@ type Options struct {
 	// returned rather than falling back to the next provider. Useful for
 	// isolating a specific provider when debugging.
 	NoFallback bool
+	// SortByCost reorders the candidates cheapest-first (by combined per-token
+	// price) before dispatch, so a multi-provider logical model routes to the
+	// least expensive available provider. Fallback still applies in cost order.
+	SortByCost bool
 }
 
 // resolve turns a model string into candidate routes. A plain name is looked up
@@ -84,6 +90,13 @@ func (r *Router) dispatch(ctx context.Context, orgID string, logicalModel string
 	routes, ok := r.resolve(logicalModel)
 	if !ok {
 		return Route{}, ErrModelNotFound
+	}
+	if opts.SortByCost && len(routes) > 1 {
+		sorted := append([]Route(nil), routes...)
+		slices.SortStableFunc(sorted, func(a, b Route) int {
+			return cmp.Compare(a.InputPricePerToken+a.OutputPricePerToken, b.InputPricePerToken+b.OutputPricePerToken)
+		})
+		routes = sorted
 	}
 	if opts.NoFallback && len(routes) > 1 {
 		routes = routes[:1]
