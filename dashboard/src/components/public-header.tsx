@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
+import { HeimdalMark } from "@/components/heimdal-mark";
 
 /** PublicHeader is the top bar for unauthenticated pages (catalog, model pages). */
 export function PublicHeader() {
@@ -43,11 +44,9 @@ export function PublicHeader() {
 						color: "primary.contrastText",
 						display: "grid",
 						placeItems: "center",
-						fontWeight: 700,
-						fontSize: 14,
 					}}
 				>
-					H
+					<HeimdalMark size={17} />
 				</Box>
 				<Box sx={{ fontWeight: 700 }}>Heimdal</Box>
 			</Box>

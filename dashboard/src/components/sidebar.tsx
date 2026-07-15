@@ -22,6 +22,7 @@ import DashboardOutlinedIcon from "@mui/icons-material/DashboardOutlined";
 import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
 import VpnKeyOutlinedIcon from "@mui/icons-material/VpnKeyOutlined";
 import WidgetsOutlinedIcon from "@mui/icons-material/WidgetsOutlined";
+import { HeimdalMark } from "@/components/heimdal-mark";
 import { clearSession, getOrg, type Org } from "@/lib/auth";
 
 export const SIDEBAR_WIDTH = 240;
@@ -70,14 +71,11 @@ export function Sidebar() {
 						borderRadius: 1.5,
 						bgcolor: "primary.main",
 						color: "primary.contrastText",
-						display: "flex",
-						alignItems: "center",
-						justifyContent: "center",
-						fontSize: 13,
-						fontWeight: 700,
+						display: "grid",
+						placeItems: "center",
 					}}
 				>
-					H
+					<HeimdalMark size={16} />
 				</Box>
 				<Typography sx={{ fontWeight: 600, fontSize: "0.9rem" }}>
 					Heimdal

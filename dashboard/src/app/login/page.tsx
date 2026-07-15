@@ -10,6 +10,7 @@ import Card from "@mui/material/Card";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
+import { HeimdalMark } from "@/components/heimdal-mark";
 import { api, ApiError, USE_MOCKS } from "@/lib/api";
 import { getToken, setSession } from "@/lib/auth";
 
@@ -63,14 +64,11 @@ export default function LoginPage() {
 							borderRadius: 1.5,
 							bgcolor: "primary.main",
 							color: "primary.contrastText",
-							display: "flex",
-							alignItems: "center",
-							justifyContent: "center",
-							fontSize: 14,
-							fontWeight: 700,
+							display: "grid",
+							placeItems: "center",
 						}}
 					>
-						H
+						<HeimdalMark size={17} />
 					</Box>
 					<Typography sx={{ fontSize: "1.125rem", fontWeight: 600 }}>
 						Heimdal
