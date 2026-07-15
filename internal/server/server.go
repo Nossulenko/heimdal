@@ -108,6 +108,7 @@ func (s *Server) routes(cfg *config.Config, authn *auth.Authenticator, gw *gatew
 	// Management/dashboard API.
 	r.Route("/api", func(r chi.Router) {
 		r.Post("/auth/login", mgmt.Login)
+		r.Get("/catalog", mgmt.Catalog) // public model catalog
 
 		r.Group(func(r chi.Router) {
 			r.Use(authn.DashboardAuth)

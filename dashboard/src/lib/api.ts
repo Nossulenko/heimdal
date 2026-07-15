@@ -167,6 +167,11 @@ export const api = {
 		return request<Model[]>("/api/models");
 	},
 
+	getCatalog(): Promise<Model[]> {
+		if (USE_MOCKS) return mock.getModels();
+		return request<Model[]>("/api/catalog", { auth: false });
+	},
+
 	getCredentials(): Promise<Credential[]> {
 		if (USE_MOCKS) return mock.getCredentials();
 		return request<Credential[]>("/api/credentials");

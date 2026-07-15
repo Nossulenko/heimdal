@@ -6,6 +6,7 @@ import { api } from "./api";
 export const queryKeys = {
 	keys: ["keys"] as const,
 	models: ["models"] as const,
+	catalog: ["catalog"] as const,
 	credentials: ["credentials"] as const,
 	usage: (from: string, to: string) => ["usage", from, to] as const,
 	balance: ["balance"] as const,
@@ -33,6 +34,10 @@ export function useDeleteKey() {
 
 export function useModels() {
 	return useQuery({ queryKey: queryKeys.models, queryFn: () => api.getModels() });
+}
+
+export function useCatalog() {
+	return useQuery({ queryKey: queryKeys.catalog, queryFn: () => api.getCatalog() });
 }
 
 export function useCredentials() {
