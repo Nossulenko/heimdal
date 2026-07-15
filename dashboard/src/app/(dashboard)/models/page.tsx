@@ -8,6 +8,7 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import { PageContainer, PageHeader } from "@/components/page-header";
+import { ProviderTag } from "@/components/provider-logo";
 import { EmptyState, ErrorState, LoadingState } from "@/components/states";
 import { ToneChip } from "@/components/tone-chip";
 import { formatPricePerMillion } from "@/lib/format";
@@ -48,7 +49,7 @@ export default function ModelsPage() {
 											{m.logicalName}
 										</TableCell>
 										<TableCell>
-											<ToneChip label={m.provider} tone="info" />
+											<ProviderTag provider={m.provider} />
 										</TableCell>
 										<TableCell>
 											<Box

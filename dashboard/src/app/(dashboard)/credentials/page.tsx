@@ -21,6 +21,7 @@ import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import AddIcon from "@mui/icons-material/Add";
 import { PageContainer, PageHeader } from "@/components/page-header";
+import { ProviderLogo } from "@/components/provider-logo";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { EmptyState, ErrorState, LoadingState } from "@/components/states";
 import { ToneChip } from "@/components/tone-chip";
@@ -112,7 +113,16 @@ export default function CredentialsPage() {
 									return (
 										<TableRow key={c.id} hover>
 											<TableCell sx={{ fontWeight: 500 }}>
-												{providerLabel(c.provider)}
+												<Box
+													sx={{
+														display: "inline-flex",
+														alignItems: "center",
+														gap: 1,
+													}}
+												>
+													<ProviderLogo provider={c.provider} size={20} />
+													{providerLabel(c.provider)}
+												</Box>
 											</TableCell>
 											<TableCell>
 												<Box
@@ -196,7 +206,16 @@ export default function CredentialsPage() {
 							>
 								{PROVIDERS.map((p) => (
 									<MenuItem key={p.value} value={p.value}>
-										{p.label}
+										<Box
+											sx={{
+												display: "inline-flex",
+												alignItems: "center",
+												gap: 1,
+											}}
+										>
+											<ProviderLogo provider={p.value} size={18} />
+											{p.label}
+										</Box>
 									</MenuItem>
 								))}
 							</TextField>
