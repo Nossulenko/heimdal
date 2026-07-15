@@ -1,4 +1,4 @@
-# relaygw
+# Heimdal
 
 A self-hostable **LLM gateway**. It exposes an OpenAI-compatible API and routes
 requests to multiple upstream providers (OpenAI, Anthropic, …) behind one
@@ -28,7 +28,7 @@ and the providers' own public API docs. See `docs/DESIGN.md` for the full design
   payments stubbed behind an interface (no live secrets in code).
 - **Management API**: login, API keys, provider credentials, model registry,
   usage aggregation, balance/invoices — all org-scoped from the session.
-- **Dashboard**: a decoupled Notion-style Next.js app in `dashboard/`.
+- **Dashboard**: a decoupled Next.js app in `dashboard/`, styled with MUI System + MUI X Charts.
 
 ## Quickstart (Docker)
 
@@ -109,7 +109,7 @@ internal/gateway   /v1 chat handler (buffered + streaming)
 internal/api       management/dashboard JSON API
 internal/server    wiring, middleware, health/readiness
 migrations         goose SQL migrations (embedded)
-dashboard          Notion-style Next.js frontend (decoupled)
+dashboard          Next.js frontend, MUI System + MUI X Charts (decoupled)
 docs/DESIGN.md     design document
 ```
 

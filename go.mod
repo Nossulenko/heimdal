@@ -1,4 +1,4 @@
-module github.com/kaizenprojects/relaygw
+module github.com/nossulenko/heimdal
 
 go 1.26
 

@@ -9,7 +9,7 @@ const validKey = "00112233445566778899aabbccddeeff00112233445566778899aabbccddee
 
 func setValid(t *testing.T) {
 	t.Helper()
-	t.Setenv("DATABASE_URL", "postgres://localhost/relaygw")
+	t.Setenv("DATABASE_URL", "postgres://localhost/heimdal")
 	t.Setenv("API_KEY_PEPPER", "pepper-long-enough")
 	t.Setenv("SESSION_SECRET", "session-long-enough")
 	t.Setenv("ENCRYPTION_KEY", validKey)

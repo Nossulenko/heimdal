@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/kaizenprojects/relaygw/internal/store"
+	"github.com/nossulenko/heimdal/internal/store"
 )
 
 // Sink is the persistence surface the recorder needs. *store.Store satisfies

@@ -1,18 +1,40 @@
 "use client";
 
-import { Check, Copy, Plus } from "lucide-react";
 import { useState } from "react";
 import type { FormEvent } from "react";
+import Alert from "@mui/material/Alert";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogTitle from "@mui/material/DialogTitle";
+import InputAdornment from "@mui/material/InputAdornment";
+import Stack from "@mui/material/Stack";
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableContainer from "@mui/material/TableContainer";
+import TableHead from "@mui/material/TableHead";
+import TableRow from "@mui/material/TableRow";
+import TextField from "@mui/material/TextField";
+import Tooltip from "@mui/material/Tooltip";
+import Typography from "@mui/material/Typography";
+import AddIcon from "@mui/icons-material/Add";
+import CheckIcon from "@mui/icons-material/Check";
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import { PageContainer, PageHeader } from "@/components/page-header";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import { EmptyState, ErrorState, LoadingState } from "@/components/states";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { ConfirmDialog, Modal } from "@/components/ui/modal";
-import { Input } from "@/components/ui/input";
-import { TD, Table, TH, THead, TR } from "@/components/ui/table";
+import { ToneChip } from "@/components/tone-chip";
 import type { ApiKey, CreatedApiKey } from "@/lib/api";
 import { formatDate } from "@/lib/format";
 import { useCreateKey, useDeleteKey, useKeys } from "@/lib/hooks";
+
+const codeSx = {
+	fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
+	fontSize: "0.78rem",
+} as const;
 
 export default function KeysPage() {
 	const keys = useKeys();
@@ -64,8 +86,11 @@ export default function KeysPage() {
 				title="API Keys"
 				description="Keys authenticate requests to your gateway. Treat them like passwords."
 				actions={
-					<Button variant="primary" onClick={() => setCreateOpen(true)}>
-						<Plus className="h-4 w-4" />
+					<Button
+						variant="contained"
+						startIcon={<AddIcon />}
+						onClick={() => setCreateOpen(true)}
+					>
 						Create key
 					</Button>
 				}
@@ -76,62 +101,85 @@ export default function KeysPage() {
 				) : keys.isError ? (
 					<ErrorState error={keys.error} />
 				) : keys.data && keys.data.length > 0 ? (
-					<Table>
-						<THead>
-							<tr>
-								<TH>Name</TH>
-								<TH>Key</TH>
-								<TH>Created</TH>
-								<TH>Last used</TH>
-								<TH>Status</TH>
-								<TH className="text-right">Actions</TH>
-							</tr>
-						</THead>
-						<tbody>
-							{keys.data.map((k) => {
-								const revoked = Boolean(k.revokedAt);
-								return (
-									<TR key={k.id}>
-										<TD className="font-medium text-gray-800">{k.name}</TD>
-										<TD>
-											<code className="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs text-gray-600">
-												{k.keyPrefix}…
-											</code>
-										</TD>
-										<TD>{formatDate(k.createdAt)}</TD>
-										<TD>{k.lastUsedAt ? formatDate(k.lastUsedAt) : "Never"}</TD>
-										<TD>
-											{revoked ? (
-												<Badge tone="red">Revoked</Badge>
-											) : (
-												<Badge tone="green">Active</Badge>
-											)}
-										</TD>
-										<TD className="text-right">
-											{revoked ? (
-												<span className="text-xs text-gray-300">—</span>
-											) : (
-												<Button
-													variant="danger"
-													size="sm"
-													onClick={() => setToRevoke(k)}
+					<TableContainer>
+						<Table>
+							<TableHead>
+								<TableRow>
+									<TableCell>Name</TableCell>
+									<TableCell>Key</TableCell>
+									<TableCell>Created</TableCell>
+									<TableCell>Last used</TableCell>
+									<TableCell>Status</TableCell>
+									<TableCell align="right">Actions</TableCell>
+								</TableRow>
+							</TableHead>
+							<TableBody>
+								{keys.data.map((k) => {
+									const revoked = Boolean(k.revokedAt);
+									return (
+										<TableRow key={k.id} hover>
+											<TableCell sx={{ fontWeight: 500 }}>{k.name}</TableCell>
+											<TableCell>
+												<Box
+													component="code"
+													sx={{
+														...codeSx,
+														bgcolor: "action.hover",
+														px: 0.75,
+														py: 0.25,
+														borderRadius: 1,
+														color: "text.secondary",
+													}}
 												>
-													Revoke
-												</Button>
-											)}
-										</TD>
-									</TR>
-								);
-							})}
-						</tbody>
-					</Table>
+													{k.keyPrefix}…
+												</Box>
+											</TableCell>
+											<TableCell>{formatDate(k.createdAt)}</TableCell>
+											<TableCell>
+												{k.lastUsedAt ? formatDate(k.lastUsedAt) : "Never"}
+											</TableCell>
+											<TableCell>
+												{revoked ? (
+													<ToneChip label="Revoked" tone="danger" />
+												) : (
+													<ToneChip label="Active" tone="success" />
+												)}
+											</TableCell>
+											<TableCell align="right">
+												{revoked ? (
+													<Typography
+														variant="caption"
+														sx={{ color: "text.disabled" }}
+													>
+														—
+													</Typography>
+												) : (
+													<Button
+														variant="outlined"
+														size="small"
+														color="error"
+														onClick={() => setToRevoke(k)}
+													>
+														Revoke
+													</Button>
+												)}
+											</TableCell>
+										</TableRow>
+									);
+								})}
+							</TableBody>
+						</Table>
+					</TableContainer>
 				) : (
 					<EmptyState
 						title="No API keys yet"
 						description="Create your first key to start sending requests to the gateway."
 						action={
-							<Button variant="primary" onClick={() => setCreateOpen(true)}>
-								<Plus className="h-4 w-4" />
+							<Button
+								variant="contained"
+								startIcon={<AddIcon />}
+								onClick={() => setCreateOpen(true)}
+							>
 								Create key
 							</Button>
 						}
@@ -139,71 +187,82 @@ export default function KeysPage() {
 				)}
 			</PageContainer>
 
-			<Modal
-				open={createOpen}
-				onClose={closeCreate}
-				title={created ? "Save your API key" : "Create API key"}
-			>
+			<Dialog open={createOpen} onClose={closeCreate} fullWidth maxWidth="sm">
+				<DialogTitle sx={{ fontSize: "1rem", fontWeight: 600 }}>
+					{created ? "Save your API key" : "Create API key"}
+				</DialogTitle>
 				{created ? (
-					<div>
-						<div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
-							Copy this key now — for security you won’t be able to see it again.
-						</div>
-						<div className="mt-3">
-							<div className="mb-1 text-sm font-medium text-gray-700">
+					<>
+						<DialogContent>
+							<Alert severity="warning" sx={{ mb: 2 }}>
+								Copy this key now — for security you won’t be able to see it again.
+							</Alert>
+							<Typography
+								variant="subtitle2"
+								sx={{ mb: 1, color: "text.primary" }}
+							>
 								{created.name}
-							</div>
-							<div className="flex items-center gap-2">
-								<code className="flex-1 overflow-x-auto whitespace-nowrap rounded-md border border-gray-200 bg-gray-50 px-3 py-2 font-mono text-xs text-gray-800">
-									{created.plaintext}
-								</code>
-								<Button onClick={copyPlaintext}>
-									{copied ? (
-										<>
-											<Check className="h-4 w-4" />
-											Copied
-										</>
-									) : (
-										<>
-											<Copy className="h-4 w-4" />
-											Copy
-										</>
-									)}
-								</Button>
-							</div>
-						</div>
-						<div className="mt-5 flex justify-end">
-							<Button variant="primary" onClick={closeCreate}>
+							</Typography>
+							<TextField
+								fullWidth
+								size="small"
+								value={created.plaintext}
+								slotProps={{
+									input: {
+										readOnly: true,
+										sx: codeSx,
+										endAdornment: (
+											<InputAdornment position="end">
+												<Tooltip title={copied ? "Copied" : "Copy"}>
+													<Button
+														size="small"
+														onClick={copyPlaintext}
+														startIcon={
+															copied ? <CheckIcon /> : <ContentCopyIcon />
+														}
+													>
+														{copied ? "Copied" : "Copy"}
+													</Button>
+												</Tooltip>
+											</InputAdornment>
+										),
+									},
+								}}
+							/>
+						</DialogContent>
+						<DialogActions sx={{ px: 3, pb: 2.5 }}>
+							<Button variant="contained" onClick={closeCreate}>
 								Done
 							</Button>
-						</div>
-					</div>
+						</DialogActions>
+					</>
 				) : (
-					<form onSubmit={submitCreate}>
-						<label
-							htmlFor="key-name"
-							className="mb-1 block text-sm font-medium text-gray-700"
-						>
-							Name
-						</label>
-						<Input
-							id="key-name"
-							value={name}
-							onChange={(e) => setName(e.target.value)}
-							placeholder="e.g. production"
-							autoFocus
-							required
-						/>
-						{createKey.isError ? (
-							<p className="mt-2 text-sm text-red-600">
-								{createKey.error instanceof Error
-									? createKey.error.message
-									: "Could not create key."}
-							</p>
-						) : null}
-						<div className="mt-5 flex justify-end gap-2">
+					<Box component="form" onSubmit={submitCreate}>
+						<DialogContent>
+							<Stack spacing={1.5}>
+								<TextField
+									id="key-name"
+									label="Name"
+									size="small"
+									fullWidth
+									autoFocus
+									required
+									value={name}
+									onChange={(e) => setName(e.target.value)}
+									placeholder="e.g. production"
+								/>
+								{createKey.isError ? (
+									<Alert severity="error" sx={{ py: 0 }}>
+										{createKey.error instanceof Error
+											? createKey.error.message
+											: "Could not create key."}
+									</Alert>
+								) : null}
+							</Stack>
+						</DialogContent>
+						<DialogActions sx={{ px: 3, pb: 2.5 }}>
 							<Button
-								variant="secondary"
+								variant="outlined"
 								onClick={closeCreate}
 								disabled={createKey.isPending}
 							>
@@ -211,15 +270,15 @@ export default function KeysPage() {
 							</Button>
 							<Button
 								type="submit"
-								variant="primary"
+								variant="contained"
 								disabled={createKey.isPending || !name.trim()}
 							>
 								{createKey.isPending ? "Creating…" : "Create key"}
 							</Button>
-						</div>
-					</form>
+						</DialogActions>
+					</Box>
 				)}
-			</Modal>
+			</Dialog>
 
 			<ConfirmDialog
 				open={Boolean(toRevoke)}

@@ -7,9 +7,9 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"github.com/kaizenprojects/relaygw/internal/cryptox"
-	"github.com/kaizenprojects/relaygw/internal/httpx"
-	"github.com/kaizenprojects/relaygw/internal/store"
+	"github.com/nossulenko/heimdal/internal/cryptox"
+	"github.com/nossulenko/heimdal/internal/httpx"
+	"github.com/nossulenko/heimdal/internal/store"
 )
 
 type apiKeyDTO struct {

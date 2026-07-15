@@ -10,7 +10,7 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/pressly/goose/v3"
 
-	"github.com/kaizenprojects/relaygw/migrations"
+	"github.com/nossulenko/heimdal/migrations"
 )
 
 func open(databaseURL string) (*sql.DB, error) {

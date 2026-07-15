@@ -1,38 +1,60 @@
 import Link from "next/link";
-import { AlertCircle, Inbox, Loader2 } from "lucide-react";
 import type { ReactNode } from "react";
+import Box from "@mui/material/Box";
+import CircularProgress from "@mui/material/CircularProgress";
+import MuiLink from "@mui/material/Link";
+import Stack from "@mui/material/Stack";
+import Typography from "@mui/material/Typography";
+import ErrorOutlineIcon from "@mui/icons-material/ErrorOutlineOutlined";
+import InboxOutlinedIcon from "@mui/icons-material/InboxOutlined";
 import { ApiError } from "@/lib/api";
+
+const shell = {
+	borderRadius: 2,
+	border: 1,
+	borderColor: "divider",
+	bgcolor: "background.paper",
+	px: 4,
+	py: 8,
+} as const;
 
 export function LoadingState({ label = "Loading…" }: { label?: string }) {
 	return (
-		<div className="flex items-center justify-center gap-2 rounded-md border border-gray-200 bg-white px-4 py-16 text-sm text-gray-400">
-			<Loader2 className="h-4 w-4 animate-spin" />
-			{label}
-		</div>
+		<Stack
+			direction="row"
+			spacing={1.5}
+			sx={{ ...shell, alignItems: "center", justifyContent: "center" }}
+		>
+			<CircularProgress size={16} thickness={5} sx={{ color: "text.disabled" }} />
+			<Typography variant="body2" sx={{ color: "text.secondary" }}>
+				{label}
+			</Typography>
+		</Stack>
 	);
 }
 
 export function ErrorState({ error }: { error: unknown }) {
 	const isAuth = error instanceof ApiError && error.status === 401;
-	const message = error instanceof Error ? error.message : "Something went wrong.";
+	const message =
+		error instanceof Error ? error.message : "Something went wrong.";
 	return (
-		<div className="flex flex-col items-center justify-center gap-1.5 rounded-md border border-gray-200 bg-white px-4 py-16 text-center">
-			<AlertCircle className="h-5 w-5 text-gray-400" />
-			<p className="text-sm font-medium text-gray-700">
+		<Stack
+			spacing={0.75}
+			sx={{ ...shell, alignItems: "center", textAlign: "center" }}
+		>
+			<ErrorOutlineIcon sx={{ color: "text.disabled", fontSize: 22 }} />
+			<Typography variant="subtitle2" sx={{ color: "text.primary" }}>
 				{isAuth ? "Your session has expired" : "Couldn’t load this data"}
-			</p>
-			<p className="max-w-sm text-sm text-gray-400">
+			</Typography>
+			<Typography variant="body2" sx={{ maxWidth: 360, color: "text.secondary" }}>
 				{isAuth ? "Please sign in again to continue." : message}
-			</p>
+			</Typography>
 			{isAuth ? (
-				<Link
-					href="/login"
-					className="mt-2 text-sm font-medium text-gray-900 underline underline-offset-2"
-				>
+				<MuiLink component={Link} href="/login" sx={{ mt: 1, color: "primary.main" }}>
 					Go to login
-				</Link>
+				</MuiLink>
 			) : null}
-		</div>
+		</Stack>
 	);
 }
 
@@ -46,13 +68,25 @@ export function EmptyState({
 	action?: ReactNode;
 }) {
 	return (
-		<div className="flex flex-col items-center justify-center gap-1.5 rounded-md border border-dashed border-gray-200 bg-white px-4 py-16 text-center">
-			<Inbox className="h-5 w-5 text-gray-300" />
-			<p className="text-sm font-medium text-gray-700">{title}</p>
+		<Stack
+			spacing={0.75}
+			sx={{
+				...shell,
+				borderStyle: "dashed",
+				alignItems: "center",
+				textAlign: "center",
+			}}
+		>
+			<InboxOutlinedIcon sx={{ color: "text.disabled", fontSize: 22 }} />
+			<Typography variant="subtitle2" sx={{ color: "text.primary" }}>
+				{title}
+			</Typography>
 			{description ? (
-				<p className="max-w-sm text-sm text-gray-400">{description}</p>
+				<Typography variant="body2" sx={{ maxWidth: 360, color: "text.secondary" }}>
+					{description}
+				</Typography>
 			) : null}
-			{action ? <div className="mt-2">{action}</div> : null}
-		</div>
+			{action ? <Box sx={{ mt: 1 }}>{action}</Box> : null}
+		</Stack>
 	);
 }

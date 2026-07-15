@@ -6,7 +6,7 @@ package router
 import (
 	"sync"
 
-	"github.com/kaizenprojects/relaygw/internal/store"
+	"github.com/nossulenko/heimdal/internal/store"
 )
 
 // Route is one concrete candidate for a logical model: which provider and

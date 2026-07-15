@@ -7,7 +7,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/kaizenprojects/relaygw/internal/store"
+	"github.com/nossulenko/heimdal/internal/store"
 )
 
 type fakeSink struct {

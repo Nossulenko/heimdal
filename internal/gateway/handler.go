@@ -11,14 +11,14 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/kaizenprojects/relaygw/internal/auth"
-	"github.com/kaizenprojects/relaygw/internal/billing"
-	"github.com/kaizenprojects/relaygw/internal/httpx"
-	"github.com/kaizenprojects/relaygw/internal/llm"
-	"github.com/kaizenprojects/relaygw/internal/ratelimit"
-	"github.com/kaizenprojects/relaygw/internal/router"
-	"github.com/kaizenprojects/relaygw/internal/store"
-	"github.com/kaizenprojects/relaygw/internal/usage"
+	"github.com/nossulenko/heimdal/internal/auth"
+	"github.com/nossulenko/heimdal/internal/billing"
+	"github.com/nossulenko/heimdal/internal/httpx"
+	"github.com/nossulenko/heimdal/internal/llm"
+	"github.com/nossulenko/heimdal/internal/ratelimit"
+	"github.com/nossulenko/heimdal/internal/router"
+	"github.com/nossulenko/heimdal/internal/store"
+	"github.com/nossulenko/heimdal/internal/usage"
 
 	"log/slog"
 )

@@ -20,8 +20,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/kaizenprojects/relaygw/internal/llm"
-	"github.com/kaizenprojects/relaygw/internal/sse"
+	"github.com/nossulenko/heimdal/internal/llm"
+	"github.com/nossulenko/heimdal/internal/sse"
 )
 
 // DefaultBaseURL is the public OpenAI API base.

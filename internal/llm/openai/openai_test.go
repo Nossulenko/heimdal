@@ -7,7 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/kaizenprojects/relaygw/internal/llm"
+	"github.com/nossulenko/heimdal/internal/llm"
 )
 
 func testReq() *llm.ChatRequest {

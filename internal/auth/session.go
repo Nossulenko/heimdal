@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/kaizenprojects/relaygw/internal/cryptox"
+	"github.com/nossulenko/heimdal/internal/cryptox"
 )
 
 // Session is the claims payload of a dashboard session token.

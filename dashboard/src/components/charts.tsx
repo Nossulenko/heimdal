@@ -1,116 +1,115 @@
 "use client";
 
-import {
-	Area,
-	AreaChart,
-	Bar,
-	BarChart,
-	CartesianGrid,
-	ResponsiveContainer,
-	Tooltip,
-	XAxis,
-	YAxis,
-} from "recharts";
+import { LineChart } from "@mui/x-charts/LineChart";
+import { BarChart } from "@mui/x-charts/BarChart";
 import type { UsageSeriesPoint } from "@/lib/api";
 import { formatCompact, formatNumber, formatShortDate } from "@/lib/format";
+import { chartPalette } from "@/theme";
 
-const tooltipStyle = {
-	borderRadius: 8,
-	border: "1px solid #e5e7eb",
-	fontSize: 12,
-	boxShadow: "0 4px 12px rgba(0,0,0,0.06)",
-};
+const CHART_HEIGHT = 260;
+
+const axisSx = {
+	"& .MuiChartsAxis-tickLabel": { fontSize: 11, fill: "#9a9a9a" },
+	"& .MuiChartsAxis-line, & .MuiChartsAxis-tick": { display: "none" },
+	"& .MuiChartsGrid-line": { stroke: chartPalette.grid, strokeDasharray: "0" },
+} as const;
+
+function shortDate(value: string | null): string {
+	return value ? formatShortDate(value) : "";
+}
 
 export function CostChart({ series }: { series: UsageSeriesPoint[] }) {
-	const data = series.map((p) => ({
-		date: p.date,
-		cost: p.costMicroUsd / 1_000_000,
-	}));
+	const dates = series.map((p) => p.date);
+	const costs = series.map((p) => p.costMicroUsd / 1_000_000);
 
 	return (
-		<ResponsiveContainer width="100%" height={240}>
-			<AreaChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-				<defs>
-					<linearGradient id="costFill" x1="0" y1="0" x2="0" y2="1">
-						<stop offset="0%" stopColor="#111827" stopOpacity={0.12} />
-						<stop offset="100%" stopColor="#111827" stopOpacity={0} />
-					</linearGradient>
-				</defs>
-				<CartesianGrid stroke="#f3f4f6" vertical={false} />
-				<XAxis
-					dataKey="date"
-					tickFormatter={formatShortDate}
-					tick={{ fontSize: 11, fill: "#9ca3af" }}
-					axisLine={false}
-					tickLine={false}
-					minTickGap={24}
-				/>
-				<YAxis
-					tickFormatter={(v) => `$${Number(v).toFixed(2)}`}
-					tick={{ fontSize: 11, fill: "#9ca3af" }}
-					axisLine={false}
-					tickLine={false}
-					width={52}
-				/>
-				<Tooltip
-					formatter={(value) => [`$${Number(value).toFixed(4)}`, "Cost"]}
-					labelFormatter={(label) => formatShortDate(String(label))}
-					contentStyle={tooltipStyle}
-				/>
-				<Area
-					type="monotone"
-					dataKey="cost"
-					stroke="#111827"
-					strokeWidth={2}
-					fill="url(#costFill)"
-				/>
-			</AreaChart>
-		</ResponsiveContainer>
+		<LineChart
+			height={CHART_HEIGHT}
+			hideLegend
+			grid={{ horizontal: true }}
+			margin={{ top: 12, right: 16, bottom: 8, left: 8 }}
+			xAxis={[
+				{
+					data: dates,
+					scaleType: "point",
+					valueFormatter: shortDate,
+					tickLabelStyle: { fontSize: 11 },
+				},
+			]}
+			yAxis={[
+				{
+					width: 52,
+					valueFormatter: (v: number) => `$${v.toFixed(2)}`,
+				},
+			]}
+			series={[
+				{
+					data: costs,
+					label: "Cost",
+					color: chartPalette.ink,
+					area: true,
+					showMark: false,
+					curve: "monotoneX",
+					valueFormatter: (v) =>
+						v == null ? "" : `$${v.toFixed(4)}`,
+				},
+			]}
+			sx={{
+				...axisSx,
+				"& .MuiAreaElement-root": { fillOpacity: 0.08 },
+			}}
+		/>
 	);
 }
 
 export function TokensChart({ series }: { series: UsageSeriesPoint[] }) {
-	const data = series.map((p) => ({
-		date: p.date,
-		prompt: p.promptTokens,
-		completion: p.completionTokens,
-	}));
+	const dates = series.map((p) => p.date);
+	const prompt = series.map((p) => p.promptTokens);
+	const completion = series.map((p) => p.completionTokens);
 
 	return (
-		<ResponsiveContainer width="100%" height={240}>
-			<BarChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-				<CartesianGrid stroke="#f3f4f6" vertical={false} />
-				<XAxis
-					dataKey="date"
-					tickFormatter={formatShortDate}
-					tick={{ fontSize: 11, fill: "#9ca3af" }}
-					axisLine={false}
-					tickLine={false}
-					minTickGap={24}
-				/>
-				<YAxis
-					tickFormatter={(v) => formatCompact(Number(v))}
-					tick={{ fontSize: 11, fill: "#9ca3af" }}
-					axisLine={false}
-					tickLine={false}
-					width={52}
-				/>
-				<Tooltip
-					formatter={(value, name) => [
-						formatNumber(Number(value)),
-						name === "prompt" ? "Prompt" : "Completion",
-					]}
-					labelFormatter={(label) => formatShortDate(String(label))}
-					contentStyle={tooltipStyle}
-				/>
-				<Bar dataKey="prompt" stackId="tokens" fill="#111827" />
-				<Bar
-					dataKey="completion"
-					stackId="tokens"
-					fill="#9ca3af"
-					radius={[2, 2, 0, 0]}
-				/>
-			</BarChart>
-		</ResponsiveContainer>
+		<BarChart
+			height={CHART_HEIGHT}
+			grid={{ horizontal: true }}
+			margin={{ top: 12, right: 16, bottom: 8, left: 8 }}
+			borderRadius={3}
+			xAxis={[
+				{
+					data: dates,
+					scaleType: "band",
+					valueFormatter: shortDate,
+					tickLabelStyle: { fontSize: 11 },
+				},
+			]}
+			yAxis={[
+				{
+					width: 52,
+					valueFormatter: (v: number) => formatCompact(v),
+				},
+			]}
+			series={[
+				{
+					data: prompt,
+					label: "Prompt",
+					stack: "tokens",
+					color: chartPalette.ink,
+					valueFormatter: (v) => (v == null ? "" : formatNumber(v)),
+				},
+				{
+					data: completion,
+					label: "Completion",
+					stack: "tokens",
+					color: chartPalette.muted,
+					valueFormatter: (v) => (v == null ? "" : formatNumber(v)),
+				},
+			]}
+			slotProps={{
+				legend: {
+					position: { vertical: "top", horizontal: "start" },
+					sx: { fontSize: 12 },
+				},
+			}}
+			sx={axisSx}
+		/>
 	);
 }

@@ -8,9 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/kaizenprojects/relaygw/internal/cryptox"
-	"github.com/kaizenprojects/relaygw/internal/httpx"
-	"github.com/kaizenprojects/relaygw/internal/store"
+	"github.com/nossulenko/heimdal/internal/cryptox"
+	"github.com/nossulenko/heimdal/internal/httpx"
+	"github.com/nossulenko/heimdal/internal/store"
 )
 
 // Authenticator resolves gateway API keys and dashboard sessions.

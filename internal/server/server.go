@@ -14,18 +14,18 @@ import (
 
 	"log/slog"
 
-	"github.com/kaizenprojects/relaygw/internal/api"
-	"github.com/kaizenprojects/relaygw/internal/auth"
-	"github.com/kaizenprojects/relaygw/internal/config"
-	"github.com/kaizenprojects/relaygw/internal/gateway"
-	"github.com/kaizenprojects/relaygw/internal/httpx"
-	"github.com/kaizenprojects/relaygw/internal/llm"
-	"github.com/kaizenprojects/relaygw/internal/llm/anthropic"
-	"github.com/kaizenprojects/relaygw/internal/llm/openai"
-	"github.com/kaizenprojects/relaygw/internal/ratelimit"
-	"github.com/kaizenprojects/relaygw/internal/router"
-	"github.com/kaizenprojects/relaygw/internal/store"
-	"github.com/kaizenprojects/relaygw/internal/usage"
+	"github.com/nossulenko/heimdal/internal/api"
+	"github.com/nossulenko/heimdal/internal/auth"
+	"github.com/nossulenko/heimdal/internal/config"
+	"github.com/nossulenko/heimdal/internal/gateway"
+	"github.com/nossulenko/heimdal/internal/httpx"
+	"github.com/nossulenko/heimdal/internal/llm"
+	"github.com/nossulenko/heimdal/internal/llm/anthropic"
+	"github.com/nossulenko/heimdal/internal/llm/openai"
+	"github.com/nossulenko/heimdal/internal/ratelimit"
+	"github.com/nossulenko/heimdal/internal/router"
+	"github.com/nossulenko/heimdal/internal/store"
+	"github.com/nossulenko/heimdal/internal/usage"
 )
 
 // Server holds the built HTTP handler and the background components that need

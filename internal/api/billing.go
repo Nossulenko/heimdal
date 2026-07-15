@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/kaizenprojects/relaygw/internal/httpx"
+	"github.com/nossulenko/heimdal/internal/httpx"
 )
 
 type balanceDTO struct {

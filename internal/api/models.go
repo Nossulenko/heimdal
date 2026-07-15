@@ -3,7 +3,7 @@ package api
 import (
 	"net/http"
 
-	"github.com/kaizenprojects/relaygw/internal/httpx"
+	"github.com/nossulenko/heimdal/internal/httpx"
 )
 
 type modelDTO struct {

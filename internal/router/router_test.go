@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/kaizenprojects/relaygw/internal/llm"
-	"github.com/kaizenprojects/relaygw/internal/store"
+	"github.com/nossulenko/heimdal/internal/llm"
+	"github.com/nossulenko/heimdal/internal/store"
 )
 
 type fakeProvider struct {

@@ -1,12 +1,23 @@
 "use client";
 
 import { useMemo } from "react";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Card from "@mui/material/Card";
+import Skeleton from "@mui/material/Skeleton";
+import Stack from "@mui/material/Stack";
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableContainer from "@mui/material/TableContainer";
+import TableHead from "@mui/material/TableHead";
+import TableRow from "@mui/material/TableRow";
+import Tooltip from "@mui/material/Tooltip";
+import Typography from "@mui/material/Typography";
 import { PageContainer, PageHeader } from "@/components/page-header";
+import { SectionTitle } from "@/components/section-title";
 import { ErrorState, LoadingState } from "@/components/states";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { TD, Table, TH, THead, TR } from "@/components/ui/table";
+import { ToneChip } from "@/components/tone-chip";
 import { rangeForDays } from "@/lib/dates";
 import { formatDateTime, formatUsd } from "@/lib/format";
 import { useBalance, useUsage } from "@/lib/hooks";
@@ -24,80 +35,111 @@ export default function BillingPage() {
 				description="Your prepaid balance and recent spend. Payments are stubbed in this version."
 			/>
 			<PageContainer>
-				<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-					<Card className="p-5">
-						<span className="text-sm text-gray-500">Current balance</span>
+				<Box
+					sx={{
+						display: "grid",
+						gap: 2,
+						gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)" },
+					}}
+				>
+					<Card sx={{ p: 2.5 }}>
+						<Typography variant="body2" sx={{ color: "text.secondary" }}>
+							Current balance
+						</Typography>
 						{balance.isLoading ? (
-							<div className="mt-2 h-8 w-32 animate-pulse rounded bg-gray-100" />
+							<Skeleton variant="rounded" width={140} height={36} sx={{ mt: 1 }} />
 						) : balance.isError ? (
-							<div className="mt-2 text-2xl font-semibold text-gray-300">—</div>
+							<Typography
+								variant="h2"
+								sx={{ mt: 1, fontWeight: 600, color: "text.disabled" }}
+							>
+								—
+							</Typography>
 						) : (
 							<>
-								<div className="mt-2 text-3xl font-semibold tracking-tight text-gray-900">
+								<Typography variant="h2" sx={{ mt: 1, fontWeight: 600 }}>
 									{balance.data ? formatUsd(balance.data.amountMicroUsd, 2) : "—"}
-								</div>
-								<div className="mt-1 text-xs text-gray-400">
+								</Typography>
+								<Typography
+									variant="caption"
+									sx={{ mt: 0.5, display: "block", color: "text.disabled" }}
+								>
 									{balance.data
 										? `Updated ${formatDateTime(balance.data.updatedAt)}`
 										: ""}
-								</div>
+								</Typography>
 							</>
 						)}
 					</Card>
 
-					<Card className="flex flex-col justify-between p-5">
-						<div>
-							<span className="text-sm text-gray-500">Add funds</span>
-							<p className="mt-2 text-sm text-gray-400">
-								Top up your prepaid balance to keep requests flowing.
-							</p>
-						</div>
-						<div className="mt-4 flex items-center gap-3">
-							<Button variant="primary" disabled title="payments stubbed in v1">
+					<Card
+						sx={{
+							p: 2.5,
+							display: "flex",
+							flexDirection: "column",
+							justifyContent: "space-between",
+						}}
+					>
+						<Box>
+							<Typography variant="body2" sx={{ color: "text.secondary" }}>
 								Add funds
-							</Button>
-							<Badge tone="amber">payments stubbed in v1</Badge>
-						</div>
+							</Typography>
+							<Typography variant="body2" sx={{ mt: 1, color: "text.disabled" }}>
+								Top up your prepaid balance to keep requests flowing.
+							</Typography>
+						</Box>
+						<Stack direction="row" spacing={1.5} sx={{ mt: 2, alignItems: "center" }}>
+							<Tooltip title="payments stubbed in v1">
+								<span>
+									<Button variant="contained" disabled>
+										Add funds
+									</Button>
+								</span>
+							</Tooltip>
+							<ToneChip label="payments stubbed in v1" tone="warn" />
+						</Stack>
 					</Card>
-				</div>
+				</Box>
 
-				<section className="mt-8">
-					<h2 className="mb-3 text-sm font-medium text-gray-700">
-						Statement · last 30 days
-					</h2>
+				<Box component="section" sx={{ mt: 5 }}>
+					<SectionTitle>Statement · last 30 days</SectionTitle>
 					{usage.isLoading ? (
 						<LoadingState />
 					) : usage.isError ? (
 						<ErrorState error={usage.error} />
 					) : (
-						<Table>
-							<THead>
-								<tr>
-									<TH>Description</TH>
-									<TH>Period</TH>
-									<TH className="text-right">Amount</TH>
-								</tr>
-							</THead>
-							<tbody>
-								<TR>
-									<TD className="font-medium text-gray-800">
-										Gateway usage
-									</TD>
-									<TD className="text-gray-500">Last 30 days</TD>
-									<TD className="text-right">
-										{usage.data ? formatUsd(usage.data.totalCostMicroUsd) : "—"}
-									</TD>
-								</TR>
-								<TR>
-									<TD className="text-gray-400" colSpan={2}>
-										Detailed invoices will appear here once billing is enabled.
-									</TD>
-									<TD className="text-right text-gray-300">—</TD>
-								</TR>
-							</tbody>
-						</Table>
+						<TableContainer>
+							<Table>
+								<TableHead>
+									<TableRow>
+										<TableCell>Description</TableCell>
+										<TableCell>Period</TableCell>
+										<TableCell align="right">Amount</TableCell>
+									</TableRow>
+								</TableHead>
+								<TableBody>
+									<TableRow hover>
+										<TableCell sx={{ fontWeight: 500 }}>Gateway usage</TableCell>
+										<TableCell sx={{ color: "text.secondary" }}>
+											Last 30 days
+										</TableCell>
+										<TableCell align="right">
+											{usage.data ? formatUsd(usage.data.totalCostMicroUsd) : "—"}
+										</TableCell>
+									</TableRow>
+									<TableRow>
+										<TableCell colSpan={2} sx={{ color: "text.disabled" }}>
+											Detailed invoices will appear here once billing is enabled.
+										</TableCell>
+										<TableCell align="right" sx={{ color: "text.disabled" }}>
+											—
+										</TableCell>
+									</TableRow>
+								</TableBody>
+							</Table>
+						</TableContainer>
 					)}
-				</section>
+				</Box>
 			</PageContainer>
 		</>
 	);

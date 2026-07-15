@@ -1,16 +1,19 @@
 import type { ReactNode } from "react";
+import Box from "@mui/material/Box";
 import { AuthGuard } from "@/components/auth-guard";
-import { Sidebar } from "@/components/sidebar";
+import { Sidebar, SIDEBAR_WIDTH } from "@/components/sidebar";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
 	return (
 		<AuthGuard>
-			<div className="min-h-screen">
+			<Box sx={{ minHeight: "100vh" }}>
 				<Sidebar />
-				<main className="pl-60">
-					<div className="min-h-screen bg-white">{children}</div>
-				</main>
-			</div>
+				<Box component="main" sx={{ pl: `${SIDEBAR_WIDTH}px` }}>
+					<Box sx={{ minHeight: "100vh", bgcolor: "background.paper" }}>
+						{children}
+					</Box>
+				</Box>
+			</Box>
 		</AuthGuard>
 	);
 }

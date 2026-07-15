@@ -3,6 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
+import Box from "@mui/material/Box";
+import CircularProgress from "@mui/material/CircularProgress";
 import { getToken } from "@/lib/auth";
 
 export function AuthGuard({ children }: { children: ReactNode }) {
@@ -19,9 +21,16 @@ export function AuthGuard({ children }: { children: ReactNode }) {
 
 	if (status === "checking") {
 		return (
-			<div className="flex min-h-screen items-center justify-center text-sm text-gray-400">
-				Loading…
-			</div>
+			<Box
+				sx={{
+					minHeight: "100vh",
+					display: "flex",
+					alignItems: "center",
+					justifyContent: "center",
+				}}
+			>
+				<CircularProgress size={22} thickness={5} sx={{ color: "text.disabled" }} />
+			</Box>
 		);
 	}
 

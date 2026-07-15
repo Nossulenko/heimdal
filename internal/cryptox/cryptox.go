@@ -24,7 +24,7 @@ import (
 )
 
 // APIKeyPrefix is the human-visible prefix of every generated key.
-const APIKeyPrefix = "rlg_"
+const APIKeyPrefix = "hmd_"
 
 // DisplayPrefixLen is how many leading characters of a key are stored for
 // display (e.g. "rlg_1a2b3c").

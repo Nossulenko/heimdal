@@ -1,4 +1,7 @@
 import type { ReactNode } from "react";
+import Box from "@mui/material/Box";
+import Stack from "@mui/material/Stack";
+import Typography from "@mui/material/Typography";
 
 interface PageHeaderProps {
 	icon: string;
@@ -9,25 +12,47 @@ interface PageHeaderProps {
 
 export function PageHeader({ icon, title, description, actions }: PageHeaderProps) {
 	return (
-		<div className="border-b border-gray-200">
-			<div className="mx-auto flex max-w-5xl items-start justify-between gap-4 px-8 py-8">
-				<div>
-					<div className="flex items-center gap-3">
-						<span className="text-3xl leading-none">{icon}</span>
-						<h1 className="text-2xl font-semibold tracking-tight text-gray-900">
+		<Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+			<Stack
+				direction="row"
+				spacing={2}
+				sx={{
+					maxWidth: 1024,
+					mx: "auto",
+					px: { xs: 3, md: 5 },
+					py: 5,
+					alignItems: "flex-start",
+					justifyContent: "space-between",
+				}}
+			>
+				<Box>
+					<Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
+						<Box component="span" sx={{ fontSize: 28, lineHeight: 1 }}>
+							{icon}
+						</Box>
+						<Typography variant="h1" component="h1">
 							{title}
-						</h1>
-					</div>
+						</Typography>
+					</Stack>
 					{description ? (
-						<p className="mt-2 max-w-2xl text-sm text-gray-500">{description}</p>
+						<Typography
+							variant="body2"
+							sx={{ mt: 1.5, maxWidth: 640, color: "text.secondary" }}
+						>
+							{description}
+						</Typography>
 					) : null}
-				</div>
-				{actions ? <div className="shrink-0 pt-1">{actions}</div> : null}
-			</div>
-		</div>
+				</Box>
+				{actions ? <Box sx={{ flexShrink: 0, pt: 0.5 }}>{actions}</Box> : null}
+			</Stack>
+		</Box>
 	);
 }
 
 export function PageContainer({ children }: { children: ReactNode }) {
-	return <div className="mx-auto max-w-5xl px-8 py-8">{children}</div>;
+	return (
+		<Box sx={{ maxWidth: 1024, mx: "auto", px: { xs: 3, md: 5 }, py: 5 }}>
+			{children}
+		</Box>
+	);
 }

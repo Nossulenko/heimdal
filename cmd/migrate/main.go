@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/kaizenprojects/relaygw/internal/migrate"
+	"github.com/nossulenko/heimdal/internal/migrate"
 )
 
 func main() {

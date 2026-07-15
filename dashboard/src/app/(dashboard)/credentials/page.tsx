@@ -1,15 +1,29 @@
 "use client";
 
-import { Plus } from "lucide-react";
 import { useState } from "react";
 import type { FormEvent } from "react";
+import Alert from "@mui/material/Alert";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogTitle from "@mui/material/DialogTitle";
+import MenuItem from "@mui/material/MenuItem";
+import Stack from "@mui/material/Stack";
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableContainer from "@mui/material/TableContainer";
+import TableHead from "@mui/material/TableHead";
+import TableRow from "@mui/material/TableRow";
+import TextField from "@mui/material/TextField";
+import Typography from "@mui/material/Typography";
+import AddIcon from "@mui/icons-material/Add";
 import { PageContainer, PageHeader } from "@/components/page-header";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import { EmptyState, ErrorState, LoadingState } from "@/components/states";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { ConfirmDialog, Modal } from "@/components/ui/modal";
-import { Input, Select } from "@/components/ui/input";
-import { TD, Table, TH, THead, TR } from "@/components/ui/table";
+import { ToneChip } from "@/components/tone-chip";
 import type { Credential } from "@/lib/api";
 import { formatDate } from "@/lib/format";
 import {
@@ -66,8 +80,11 @@ export default function CredentialsPage() {
 				title="Provider Keys"
 				description="Upstream provider secrets used to fulfill requests. Secrets are write-only — they’re never shown again after saving."
 				actions={
-					<Button variant="primary" onClick={() => setAddOpen(true)}>
-						<Plus className="h-4 w-4" />
+					<Button
+						variant="contained"
+						startIcon={<AddIcon />}
+						onClick={() => setAddOpen(true)}
+					>
 						Add provider key
 					</Button>
 				}
@@ -78,62 +95,82 @@ export default function CredentialsPage() {
 				) : credentials.isError ? (
 					<ErrorState error={credentials.error} />
 				) : credentials.data && credentials.data.length > 0 ? (
-					<Table>
-						<THead>
-							<tr>
-								<TH>Provider</TH>
-								<TH>Secret</TH>
-								<TH>Added</TH>
-								<TH>Status</TH>
-								<TH className="text-right">Actions</TH>
-							</tr>
-						</THead>
-						<tbody>
-							{credentials.data.map((c) => {
-								const revoked = Boolean(c.revokedAt);
-								return (
-									<TR key={c.id}>
-										<TD className="font-medium text-gray-800">
-											{providerLabel(c.provider)}
-										</TD>
-										<TD>
-											<code className="font-mono text-xs text-gray-400">
-												••••••••••••••••
-											</code>
-										</TD>
-										<TD>{formatDate(c.createdAt)}</TD>
-										<TD>
-											{revoked ? (
-												<Badge tone="red">Revoked</Badge>
-											) : (
-												<Badge tone="green">Active</Badge>
-											)}
-										</TD>
-										<TD className="text-right">
-											{revoked ? (
-												<span className="text-xs text-gray-300">—</span>
-											) : (
-												<Button
-													variant="danger"
-													size="sm"
-													onClick={() => setToDelete(c)}
+					<TableContainer>
+						<Table>
+							<TableHead>
+								<TableRow>
+									<TableCell>Provider</TableCell>
+									<TableCell>Secret</TableCell>
+									<TableCell>Added</TableCell>
+									<TableCell>Status</TableCell>
+									<TableCell align="right">Actions</TableCell>
+								</TableRow>
+							</TableHead>
+							<TableBody>
+								{credentials.data.map((c) => {
+									const revoked = Boolean(c.revokedAt);
+									return (
+										<TableRow key={c.id} hover>
+											<TableCell sx={{ fontWeight: 500 }}>
+												{providerLabel(c.provider)}
+											</TableCell>
+											<TableCell>
+												<Box
+													component="code"
+													sx={{
+														fontFamily:
+															"ui-monospace, SFMono-Regular, Menlo, monospace",
+														fontSize: "0.78rem",
+														color: "text.disabled",
+														letterSpacing: 1,
+													}}
 												>
-													Delete
-												</Button>
-											)}
-										</TD>
-									</TR>
-								);
-							})}
-						</tbody>
-					</Table>
+													••••••••••••••••
+												</Box>
+											</TableCell>
+											<TableCell>{formatDate(c.createdAt)}</TableCell>
+											<TableCell>
+												{revoked ? (
+													<ToneChip label="Revoked" tone="danger" />
+												) : (
+													<ToneChip label="Active" tone="success" />
+												)}
+											</TableCell>
+											<TableCell align="right">
+												{revoked ? (
+													<Typography
+														variant="caption"
+														sx={{ color: "text.disabled" }}
+													>
+														—
+													</Typography>
+												) : (
+													<Button
+														variant="outlined"
+														size="small"
+														color="error"
+														onClick={() => setToDelete(c)}
+													>
+														Delete
+													</Button>
+												)}
+											</TableCell>
+										</TableRow>
+									);
+								})}
+							</TableBody>
+						</Table>
+					</TableContainer>
 				) : (
 					<EmptyState
 						title="No provider keys yet"
 						description="Add an upstream provider secret so the gateway can route requests."
 						action={
-							<Button variant="primary" onClick={() => setAddOpen(true)}>
-								<Plus className="h-4 w-4" />
+							<Button
+								variant="contained"
+								startIcon={<AddIcon />}
+								onClick={() => setAddOpen(true)}
+							>
 								Add provider key
 							</Button>
 						}
@@ -141,57 +178,53 @@ export default function CredentialsPage() {
 				)}
 			</PageContainer>
 
-			<Modal open={addOpen} onClose={closeAdd} title="Add provider key">
-				<form onSubmit={submitAdd} className="space-y-3">
-					<div>
-						<label
-							htmlFor="provider"
-							className="mb-1 block text-sm font-medium text-gray-700"
-						>
-							Provider
-						</label>
-						<Select
-							id="provider"
-							value={provider}
-							onChange={(e) => setProvider(e.target.value)}
-						>
-							{PROVIDERS.map((p) => (
-								<option key={p.value} value={p.value}>
-									{p.label}
-								</option>
-							))}
-						</Select>
-					</div>
-					<div>
-						<label
-							htmlFor="secret"
-							className="mb-1 block text-sm font-medium text-gray-700"
-						>
-							API key
-						</label>
-						<Input
-							id="secret"
-							type="password"
-							value={apiKey}
-							onChange={(e) => setApiKey(e.target.value)}
-							placeholder="sk-…"
-							autoComplete="off"
-							required
-						/>
-						<p className="mt-1.5 text-xs text-gray-400">
-							Stored securely and never displayed again.
-						</p>
-					</div>
-					{createCredential.isError ? (
-						<p className="text-sm text-red-600">
-							{createCredential.error instanceof Error
-								? createCredential.error.message
-								: "Could not save provider key."}
-						</p>
-					) : null}
-					<div className="flex justify-end gap-2 pt-2">
+			<Dialog open={addOpen} onClose={closeAdd} fullWidth maxWidth="sm">
+				<DialogTitle sx={{ fontSize: "1rem", fontWeight: 600 }}>
+					Add provider key
+				</DialogTitle>
+				<Box component="form" onSubmit={submitAdd}>
+					<DialogContent>
+						<Stack spacing={2}>
+							<TextField
+								select
+								id="provider"
+								label="Provider"
+								size="small"
+								fullWidth
+								value={provider}
+								onChange={(e) => setProvider(e.target.value)}
+							>
+								{PROVIDERS.map((p) => (
+									<MenuItem key={p.value} value={p.value}>
+										{p.label}
+									</MenuItem>
+								))}
+							</TextField>
+							<TextField
+								id="secret"
+								label="API key"
+								type="password"
+								size="small"
+								fullWidth
+								required
+								value={apiKey}
+								onChange={(e) => setApiKey(e.target.value)}
+								placeholder="sk-…"
+								autoComplete="off"
+								helperText="Stored securely and never displayed again."
+							/>
+							{createCredential.isError ? (
+								<Alert severity="error" sx={{ py: 0 }}>
+									{createCredential.error instanceof Error
+										? createCredential.error.message
+										: "Could not save provider key."}
+								</Alert>
+							) : null}
+						</Stack>
+					</DialogContent>
+					<DialogActions sx={{ px: 3, pb: 2.5 }}>
 						<Button
-							variant="secondary"
+							variant="outlined"
 							onClick={closeAdd}
 							disabled={createCredential.isPending}
 						>
@@ -199,14 +232,14 @@ export default function CredentialsPage() {
 						</Button>
 						<Button
 							type="submit"
-							variant="primary"
+							variant="contained"
 							disabled={createCredential.isPending || !apiKey.trim()}
 						>
 							{createCredential.isPending ? "Saving…" : "Save key"}
 						</Button>
-					</div>
-				</form>
-			</Modal>
+					</DialogActions>
+				</Box>
+			</Dialog>
 
 			<ConfirmDialog
 				open={Boolean(toDelete)}

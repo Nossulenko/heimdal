@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/kaizenprojects/relaygw/internal/cryptox"
-	"github.com/kaizenprojects/relaygw/internal/llm"
-	"github.com/kaizenprojects/relaygw/internal/store"
+	"github.com/nossulenko/heimdal/internal/cryptox"
+	"github.com/nossulenko/heimdal/internal/llm"
+	"github.com/nossulenko/heimdal/internal/store"
 )
 
 // Router-level errors.

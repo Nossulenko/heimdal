@@ -1,4 +1,4 @@
-# relaygw — Design (Phase 0)
+# Heimdal — Design (Phase 0)
 
 Status: **draft for review**. No code yet. This document is written from first principles and the providers' own public API documentation. Where a wire-format detail must be exact before implementation, it is flagged **[verify]** — those get re-checked against live provider docs before Phase 2.
 

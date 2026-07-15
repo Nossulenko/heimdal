@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/kaizenprojects/relaygw/internal/httpx"
-	"github.com/kaizenprojects/relaygw/internal/store"
+	"github.com/nossulenko/heimdal/internal/httpx"
+	"github.com/nossulenko/heimdal/internal/store"
 )
 
 type usageDayDTO struct {

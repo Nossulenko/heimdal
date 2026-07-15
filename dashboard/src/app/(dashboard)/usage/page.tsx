@@ -1,12 +1,22 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Box from "@mui/material/Box";
+import Card from "@mui/material/Card";
+import Stack from "@mui/material/Stack";
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableContainer from "@mui/material/TableContainer";
+import TableHead from "@mui/material/TableHead";
+import TableRow from "@mui/material/TableRow";
+import ToggleButton from "@mui/material/ToggleButton";
+import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import { CostChart, TokensChart } from "@/components/charts";
 import { PageContainer, PageHeader } from "@/components/page-header";
+import { SectionTitle } from "@/components/section-title";
+import { StatCard } from "@/components/stat-card";
 import { EmptyState, ErrorState, LoadingState } from "@/components/states";
-import { Card } from "@/components/ui/card";
-import { TD, Table, TH, THead, TR } from "@/components/ui/table";
-import { cn } from "@/lib/cn";
 import { rangeForDays } from "@/lib/dates";
 import { formatNumber, formatUsd } from "@/lib/format";
 import { useUsage } from "@/lib/hooks";
@@ -16,34 +26,6 @@ const PRESETS = [
 	{ label: "30 days", days: 30 },
 	{ label: "90 days", days: 90 },
 ] as const;
-
-function RangeSelector({
-	days,
-	onChange,
-}: {
-	days: number;
-	onChange: (days: number) => void;
-}) {
-	return (
-		<div className="inline-flex rounded-md border border-gray-200 bg-white p-0.5">
-			{PRESETS.map((p) => (
-				<button
-					key={p.days}
-					type="button"
-					onClick={() => onChange(p.days)}
-					className={cn(
-						"rounded px-3 py-1 text-sm transition-colors",
-						days === p.days
-							? "bg-gray-900 text-white"
-							: "text-gray-600 hover:bg-gray-100",
-					)}
-				>
-					{p.label}
-				</button>
-			))}
-		</div>
-	);
-}
 
 export default function UsagePage() {
 	const [days, setDays] = useState(30);
@@ -65,7 +47,22 @@ export default function UsagePage() {
 				icon="📊"
 				title="Usage"
 				description="Track cost and token consumption across your gateway over time."
-				actions={<RangeSelector days={days} onChange={setDays} />}
+				actions={
+					<ToggleButtonGroup
+						exclusive
+						size="small"
+						value={days}
+						onChange={(_, next) => {
+							if (next !== null) setDays(next);
+						}}
+					>
+						{PRESETS.map((p) => (
+							<ToggleButton key={p.days} value={p.days} sx={{ px: 1.75 }}>
+								{p.label}
+							</ToggleButton>
+						))}
+					</ToggleButtonGroup>
+				}
 			/>
 			<PageContainer>
 				{usage.isLoading ? (
@@ -73,55 +70,39 @@ export default function UsagePage() {
 				) : usage.isError ? (
 					<ErrorState error={usage.error} />
 				) : usage.data ? (
-					<div className="space-y-8">
-						<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-							<Card className="p-5">
-								<span className="text-sm text-gray-500">
-									Total spend · {days}d
-								</span>
-								<div className="mt-2 text-2xl font-semibold tracking-tight text-gray-900">
-									{formatUsd(usage.data.totalCostMicroUsd)}
-								</div>
-							</Card>
-							<Card className="p-5">
-								<span className="text-sm text-gray-500">
-									Total tokens · {days}d
-								</span>
-								<div className="mt-2 text-2xl font-semibold tracking-tight text-gray-900">
-									{formatNumber(usage.data.totalTokens)}
-								</div>
-							</Card>
-						</div>
+					<Stack spacing={5}>
+						<Box
+							sx={{
+								display: "grid",
+								gap: 2,
+								gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)" },
+							}}
+						>
+							<StatCard
+								label={`Total spend · ${days}d`}
+								value={formatUsd(usage.data.totalCostMicroUsd)}
+							/>
+							<StatCard
+								label={`Total tokens · ${days}d`}
+								value={formatNumber(usage.data.totalTokens)}
+							/>
+						</Box>
 
 						{hasSeries ? (
 							<>
-								<section>
-									<h2 className="mb-3 text-sm font-medium text-gray-700">
-										Daily cost
-									</h2>
-									<Card className="p-4">
+								<Box component="section">
+									<SectionTitle>Daily cost</SectionTitle>
+									<Card sx={{ p: 2 }}>
 										<CostChart series={usage.data.series} />
 									</Card>
-								</section>
+								</Box>
 
-								<section>
-									<h2 className="mb-3 text-sm font-medium text-gray-700">
-										Daily tokens
-									</h2>
-									<Card className="p-4">
+								<Box component="section">
+									<SectionTitle>Daily tokens</SectionTitle>
+									<Card sx={{ p: 2 }}>
 										<TokensChart series={usage.data.series} />
-										<div className="mt-3 flex items-center gap-4 px-1 text-xs text-gray-500">
-											<span className="inline-flex items-center gap-1.5">
-												<span className="h-2.5 w-2.5 rounded-sm bg-gray-900" />
-												Prompt
-											</span>
-											<span className="inline-flex items-center gap-1.5">
-												<span className="h-2.5 w-2.5 rounded-sm bg-gray-400" />
-												Completion
-											</span>
-										</div>
 									</Card>
-								</section>
+								</Box>
 							</>
 						) : (
 							<EmptyState
@@ -130,42 +111,44 @@ export default function UsagePage() {
 							/>
 						)}
 
-						<section>
-							<h2 className="mb-3 text-sm font-medium text-gray-700">
-								By model
-							</h2>
+						<Box component="section">
+							<SectionTitle>By model</SectionTitle>
 							{byModel.length > 0 ? (
-								<Table>
-									<THead>
-										<tr>
-											<TH>Model</TH>
-											<TH className="text-right">Requests</TH>
-											<TH className="text-right">Tokens</TH>
-											<TH className="text-right">Spend</TH>
-										</tr>
-									</THead>
-									<tbody>
-										{byModel.map((m) => (
-											<TR key={m.logicalModel}>
-												<TD className="font-medium text-gray-800">
-													{m.logicalModel}
-												</TD>
-												<TD className="text-right">
-													{formatNumber(m.requests)}
-												</TD>
-												<TD className="text-right">{formatNumber(m.tokens)}</TD>
-												<TD className="text-right">
-													{formatUsd(m.costMicroUsd)}
-												</TD>
-											</TR>
-										))}
-									</tbody>
-								</Table>
+								<TableContainer>
+									<Table>
+										<TableHead>
+											<TableRow>
+												<TableCell>Model</TableCell>
+												<TableCell align="right">Requests</TableCell>
+												<TableCell align="right">Tokens</TableCell>
+												<TableCell align="right">Spend</TableCell>
+											</TableRow>
+										</TableHead>
+										<TableBody>
+											{byModel.map((m) => (
+												<TableRow key={m.logicalModel} hover>
+													<TableCell sx={{ fontWeight: 500 }}>
+														{m.logicalModel}
+													</TableCell>
+													<TableCell align="right">
+														{formatNumber(m.requests)}
+													</TableCell>
+													<TableCell align="right">
+														{formatNumber(m.tokens)}
+													</TableCell>
+													<TableCell align="right">
+														{formatUsd(m.costMicroUsd)}
+													</TableCell>
+												</TableRow>
+											))}
+										</TableBody>
+									</Table>
+								</TableContainer>
 							) : (
 								<EmptyState title="No model activity in this range" />
 							)}
-						</section>
-					</div>
+						</Box>
+					</Stack>
 				) : null}
 			</PageContainer>
 		</>

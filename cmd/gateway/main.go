@@ -1,4 +1,4 @@
-// Command gateway is the relaygw server entrypoint. It loads configuration,
+// Command gateway is the Heimdal server entrypoint. It loads configuration,
 // connects to Postgres and Redis, builds the HTTP server, and serves until it
 // receives SIGINT/SIGTERM, then shuts down gracefully.
 package main
@@ -15,9 +15,9 @@ import (
 
 	"github.com/redis/go-redis/v9"
 
-	"github.com/kaizenprojects/relaygw/internal/config"
-	"github.com/kaizenprojects/relaygw/internal/server"
-	"github.com/kaizenprojects/relaygw/internal/store"
+	"github.com/nossulenko/heimdal/internal/config"
+	"github.com/nossulenko/heimdal/internal/server"
+	"github.com/nossulenko/heimdal/internal/store"
 )
 
 func main() {
@@ -68,7 +68,7 @@ func main() {
 
 	serverErr := make(chan error, 1)
 	go func() {
-		logger.Info("relaygw listening", "addr", cfg.Addr, "env", cfg.Env)
+		logger.Info("heimdal listening", "addr", cfg.Addr, "env", cfg.Env)
 		if err := httpServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			serverErr <- err
 		}

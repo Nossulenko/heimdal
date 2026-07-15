@@ -1,41 +1,27 @@
 "use client";
 
-import { Hash, TrendingUp, Wallet } from "lucide-react";
 import { useMemo } from "react";
-import type { ReactNode } from "react";
+import Box from "@mui/material/Box";
+import Card from "@mui/material/Card";
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableContainer from "@mui/material/TableContainer";
+import TableHead from "@mui/material/TableHead";
+import TableRow from "@mui/material/TableRow";
+import ShowChartOutlinedIcon from "@mui/icons-material/ShowChartOutlined";
+import TokenOutlinedIcon from "@mui/icons-material/TokenOutlined";
+import AccountBalanceWalletOutlinedIcon from "@mui/icons-material/AccountBalanceWalletOutlined";
 import { CostChart } from "@/components/charts";
 import { PageContainer, PageHeader } from "@/components/page-header";
+import { SectionTitle } from "@/components/section-title";
+import { StatCard } from "@/components/stat-card";
 import { EmptyState, ErrorState, LoadingState } from "@/components/states";
-import { Card } from "@/components/ui/card";
-import { TD, Table, TH, THead, TR } from "@/components/ui/table";
 import { rangeForDays } from "@/lib/dates";
 import { formatDateTime, formatNumber, formatUsd } from "@/lib/format";
 import { useBalance, useUsage } from "@/lib/hooks";
 
-function StatCard({
-	label,
-	value,
-	sub,
-	icon,
-}: {
-	label: string;
-	value: string;
-	sub?: string;
-	icon: ReactNode;
-}) {
-	return (
-		<Card className="p-5">
-			<div className="flex items-center justify-between">
-				<span className="text-sm text-gray-500">{label}</span>
-				<span className="text-gray-300">{icon}</span>
-			</div>
-			<div className="mt-3 text-2xl font-semibold tracking-tight text-gray-900">
-				{value}
-			</div>
-			<div className="mt-1 min-h-4 text-xs text-gray-400">{sub ?? ""}</div>
-		</Card>
-	);
-}
+const iconSx = { fontSize: 18 };
 
 export default function OverviewPage() {
 	const range = useMemo(() => rangeForDays(30), []);
@@ -57,10 +43,16 @@ export default function OverviewPage() {
 				description="A snapshot of your gateway spend and usage over the last 30 days."
 			/>
 			<PageContainer>
-				<div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+				<Box
+					sx={{
+						display: "grid",
+						gap: 2,
+						gridTemplateColumns: { xs: "1fr", sm: "repeat(3, 1fr)" },
+					}}
+				>
 					<StatCard
 						label="Balance"
-						icon={<Wallet className="h-4 w-4" />}
+						icon={<AccountBalanceWalletOutlinedIcon sx={iconSx} />}
 						value={
 							balance.data
 								? formatUsd(balance.data.amountMicroUsd, 2)
@@ -76,7 +68,7 @@ export default function OverviewPage() {
 					/>
 					<StatCard
 						label="Spend · 30d"
-						icon={<TrendingUp className="h-4 w-4" />}
+						icon={<ShowChartOutlinedIcon sx={iconSx} />}
 						value={
 							usage.data
 								? formatUsd(usage.data.totalCostMicroUsd)
@@ -87,7 +79,7 @@ export default function OverviewPage() {
 					/>
 					<StatCard
 						label="Tokens · 30d"
-						icon={<Hash className="h-4 w-4" />}
+						icon={<TokenOutlinedIcon sx={iconSx} />}
 						value={
 							usage.data
 								? formatNumber(usage.data.totalTokens)
@@ -96,16 +88,16 @@ export default function OverviewPage() {
 									: "…"
 						}
 					/>
-				</div>
+				</Box>
 
-				<section className="mt-8">
-					<h2 className="mb-3 text-sm font-medium text-gray-700">Daily cost</h2>
+				<Box component="section" sx={{ mt: 5 }}>
+					<SectionTitle>Daily cost</SectionTitle>
 					{usage.isLoading ? (
 						<LoadingState />
 					) : usage.isError ? (
 						<ErrorState error={usage.error} />
 					) : usage.data && usage.data.series.length > 0 ? (
-						<Card className="p-4">
+						<Card sx={{ p: 2 }}>
 							<CostChart series={usage.data.series} />
 						</Card>
 					) : (
@@ -114,46 +106,50 @@ export default function OverviewPage() {
 							description="Once you start sending requests through the gateway, your daily cost will appear here."
 						/>
 					)}
-				</section>
+				</Box>
 
-				<section className="mt-8">
-					<h2 className="mb-3 text-sm font-medium text-gray-700">
-						Top models by spend
-					</h2>
+				<Box component="section" sx={{ mt: 5 }}>
+					<SectionTitle>Top models by spend</SectionTitle>
 					{usage.isLoading ? (
 						<LoadingState />
 					) : usage.isError ? (
 						<ErrorState error={usage.error} />
 					) : topModels.length > 0 ? (
-						<Table>
-							<THead>
-								<tr>
-									<TH>Model</TH>
-									<TH className="text-right">Requests</TH>
-									<TH className="text-right">Tokens</TH>
-									<TH className="text-right">Spend</TH>
-								</tr>
-							</THead>
-							<tbody>
-								{topModels.map((m) => (
-									<TR key={m.logicalModel}>
-										<TD className="font-medium text-gray-800">
-											{m.logicalModel}
-										</TD>
-										<TD className="text-right">{formatNumber(m.requests)}</TD>
-										<TD className="text-right">{formatNumber(m.tokens)}</TD>
-										<TD className="text-right">{formatUsd(m.costMicroUsd)}</TD>
-									</TR>
-								))}
-							</tbody>
-						</Table>
+						<TableContainer>
+							<Table>
+								<TableHead>
+									<TableRow>
+										<TableCell>Model</TableCell>
+										<TableCell align="right">Requests</TableCell>
+										<TableCell align="right">Tokens</TableCell>
+										<TableCell align="right">Spend</TableCell>
+									</TableRow>
+								</TableHead>
+								<TableBody>
+									{topModels.map((m) => (
+										<TableRow key={m.logicalModel} hover>
+											<TableCell sx={{ fontWeight: 500 }}>
+												{m.logicalModel}
+											</TableCell>
+											<TableCell align="right">
+												{formatNumber(m.requests)}
+											</TableCell>
+											<TableCell align="right">{formatNumber(m.tokens)}</TableCell>
+											<TableCell align="right">
+												{formatUsd(m.costMicroUsd)}
+											</TableCell>
+										</TableRow>
+									))}
+								</TableBody>
+							</Table>
+						</TableContainer>
 					) : (
 						<EmptyState
 							title="No model activity"
 							description="Model-level spend will show up here after your first requests."
 						/>
 					)}
-				</section>
+				</Box>
 			</PageContainer>
 		</>
 	);

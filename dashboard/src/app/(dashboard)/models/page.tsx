@@ -1,9 +1,15 @@
 "use client";
 
+import Box from "@mui/material/Box";
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableContainer from "@mui/material/TableContainer";
+import TableHead from "@mui/material/TableHead";
+import TableRow from "@mui/material/TableRow";
 import { PageContainer, PageHeader } from "@/components/page-header";
 import { EmptyState, ErrorState, LoadingState } from "@/components/states";
-import { Badge } from "@/components/ui/badge";
-import { TD, Table, TH, THead, TR } from "@/components/ui/table";
+import { ToneChip } from "@/components/tone-chip";
 import { formatPricePerMillion } from "@/lib/format";
 import { useModels } from "@/lib/hooks";
 
@@ -23,46 +29,58 @@ export default function ModelsPage() {
 				) : models.isError ? (
 					<ErrorState error={models.error} />
 				) : models.data && models.data.length > 0 ? (
-					<Table>
-						<THead>
-							<tr>
-								<TH>Logical name</TH>
-								<TH>Provider</TH>
-								<TH>Provider model ID</TH>
-								<TH className="text-right">Input / 1M</TH>
-								<TH className="text-right">Output / 1M</TH>
-								<TH>Status</TH>
-							</tr>
-						</THead>
-						<tbody>
-							{models.data.map((m) => (
-								<TR key={`${m.provider}/${m.logicalName}`}>
-									<TD className="font-medium text-gray-800">{m.logicalName}</TD>
-									<TD>
-										<Badge tone="blue">{m.provider}</Badge>
-									</TD>
-									<TD>
-										<code className="font-mono text-xs text-gray-500">
-											{m.providerModelId}
-										</code>
-									</TD>
-									<TD className="text-right tabular-nums">
-										{formatPricePerMillion(m.inputPricePerToken)}
-									</TD>
-									<TD className="text-right tabular-nums">
-										{formatPricePerMillion(m.outputPricePerToken)}
-									</TD>
-									<TD>
-										{m.active ? (
-											<Badge tone="green">Active</Badge>
-										) : (
-											<Badge tone="gray">Inactive</Badge>
-										)}
-									</TD>
-								</TR>
-							))}
-						</tbody>
-					</Table>
+					<TableContainer>
+						<Table>
+							<TableHead>
+								<TableRow>
+									<TableCell>Logical name</TableCell>
+									<TableCell>Provider</TableCell>
+									<TableCell>Provider model ID</TableCell>
+									<TableCell align="right">Input / 1M</TableCell>
+									<TableCell align="right">Output / 1M</TableCell>
+									<TableCell>Status</TableCell>
+								</TableRow>
+							</TableHead>
+							<TableBody>
+								{models.data.map((m) => (
+									<TableRow key={`${m.provider}/${m.logicalName}`} hover>
+										<TableCell sx={{ fontWeight: 500 }}>
+											{m.logicalName}
+										</TableCell>
+										<TableCell>
+											<ToneChip label={m.provider} tone="info" />
+										</TableCell>
+										<TableCell>
+											<Box
+												component="code"
+												sx={{
+													fontFamily:
+														"ui-monospace, SFMono-Regular, Menlo, monospace",
+													fontSize: "0.78rem",
+													color: "text.secondary",
+												}}
+											>
+												{m.providerModelId}
+											</Box>
+										</TableCell>
+										<TableCell align="right" sx={{ fontVariantNumeric: "tabular-nums" }}>
+											{formatPricePerMillion(m.inputPricePerToken)}
+										</TableCell>
+										<TableCell align="right" sx={{ fontVariantNumeric: "tabular-nums" }}>
+											{formatPricePerMillion(m.outputPricePerToken)}
+										</TableCell>
+										<TableCell>
+											{m.active ? (
+												<ToneChip label="Active" tone="success" />
+											) : (
+												<ToneChip label="Inactive" tone="neutral" />
+											)}
+										</TableCell>
+									</TableRow>
+								))}
+							</TableBody>
+						</Table>
+					</TableContainer>
 				) : (
 					<EmptyState
 						title="No models configured"

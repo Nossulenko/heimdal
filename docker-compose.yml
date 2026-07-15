@@ -1,16 +1,18 @@
+name: heimdal
+
 services:
   postgres:
     image: postgres:16-alpine
     environment:
-      POSTGRES_USER: relaygw
-      POSTGRES_PASSWORD: relaygw
-      POSTGRES_DB: relaygw
+      POSTGRES_USER: heimdal
+      POSTGRES_PASSWORD: heimdal
+      POSTGRES_DB: heimdal
     ports:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U relaygw"]
+      test: ["CMD-SHELL", "pg_isready -U heimdal"]
       interval: 3s
       timeout: 3s
       retries: 10
@@ -34,7 +36,7 @@ services:
         condition: service_healthy
     environment:
       ADDR: ":8080"
-      DATABASE_URL: postgres://relaygw:relaygw@postgres:5432/relaygw?sslmode=disable
+      DATABASE_URL: postgres://heimdal:heimdal@postgres:5432/heimdal?sslmode=disable
       REDIS_URL: redis://redis:6379/0
       API_KEY_PEPPER: dev-pepper-change-me-please
       SESSION_SECRET: dev-session-secret-change-me

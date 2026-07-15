@@ -3,10 +3,15 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
+import Alert from "@mui/material/Alert";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Card from "@mui/material/Card";
+import Stack from "@mui/material/Stack";
+import TextField from "@mui/material/TextField";
+import Typography from "@mui/material/Typography";
 import { api, ApiError, USE_MOCKS } from "@/lib/api";
 import { getToken, setSession } from "@/lib/auth";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 
 export default function LoginPage() {
 	const router = useRouter();
@@ -39,74 +44,104 @@ export default function LoginPage() {
 	}
 
 	return (
-		<div className="flex min-h-screen items-center justify-center bg-[#fafafa] px-4">
-			<div className="w-full max-w-sm">
-				<div className="mb-6 flex items-center gap-2">
-					<div className="flex h-7 w-7 items-center justify-center rounded bg-gray-900 text-sm font-bold text-white">
-						r
-					</div>
-					<span className="text-lg font-semibold text-gray-900">relaygw</span>
-				</div>
+		<Box
+			sx={{
+				minHeight: "100vh",
+				display: "flex",
+				alignItems: "center",
+				justifyContent: "center",
+				bgcolor: "background.default",
+				px: 2,
+			}}
+		>
+			<Box sx={{ width: "100%", maxWidth: 380 }}>
+				<Stack direction="row" spacing={1.25} sx={{ alignItems: "center", mb: 3 }}>
+					<Box
+						sx={{
+							width: 28,
+							height: 28,
+							borderRadius: 1.5,
+							bgcolor: "primary.main",
+							color: "primary.contrastText",
+							display: "flex",
+							alignItems: "center",
+							justifyContent: "center",
+							fontSize: 14,
+							fontWeight: 700,
+						}}
+					>
+						H
+					</Box>
+					<Typography sx={{ fontSize: "1.125rem", fontWeight: 600 }}>
+						Heimdal
+					</Typography>
+				</Stack>
 
-				<div className="rounded-lg border border-gray-200 bg-white p-6">
-					<h1 className="text-lg font-semibold text-gray-900">Sign in</h1>
-					<p className="mt-1 text-sm text-gray-500">
+				<Card sx={{ p: 3 }}>
+					<Typography variant="h4" component="h1">
+						Sign in
+					</Typography>
+					<Typography variant="body2" sx={{ mt: 0.5, color: "text.secondary" }}>
 						Access your gateway dashboard.
-					</p>
+					</Typography>
 
-					<form onSubmit={onSubmit} className="mt-5 space-y-3">
-						<div>
-							<label
-								htmlFor="email"
-								className="mb-1 block text-sm font-medium text-gray-700"
-							>
-								Email
-							</label>
-							<Input
+					<Box component="form" onSubmit={onSubmit} sx={{ mt: 3 }}>
+						<Stack spacing={2}>
+							<TextField
 								id="email"
+								label="Email"
 								type="email"
+								size="small"
+								fullWidth
 								value={email}
 								onChange={(e) => setEmail(e.target.value)}
 								placeholder="you@company.com"
 								autoComplete="email"
 								required
 							/>
-						</div>
-						<div>
-							<label
-								htmlFor="password"
-								className="mb-1 block text-sm font-medium text-gray-700"
-							>
-								Password
-							</label>
-							<Input
+							<TextField
 								id="password"
+								label="Password"
 								type="password"
+								size="small"
+								fullWidth
 								value={password}
 								onChange={(e) => setPassword(e.target.value)}
 								placeholder="••••••••"
 								autoComplete="current-password"
 								required
 							/>
-						</div>
-						{error ? <p className="text-sm text-red-600">{error}</p> : null}
-						<Button
-							type="submit"
-							variant="primary"
-							className="w-full"
-							disabled={loading}
-						>
-							{loading ? "Signing in…" : "Sign in"}
-						</Button>
-					</form>
+							{error ? (
+								<Alert severity="error" sx={{ py: 0 }}>
+									{error}
+								</Alert>
+							) : null}
+							<Button
+								type="submit"
+								variant="contained"
+								fullWidth
+								disabled={loading}
+							>
+								{loading ? "Signing in…" : "Sign in"}
+							</Button>
+						</Stack>
+					</Box>
 
 					{USE_MOCKS ? (
-						<p className="mt-4 text-center text-xs text-gray-400">
+						<Typography
+							variant="caption"
+							sx={{
+								display: "block",
+								mt: 2.5,
+								textAlign: "center",
+								color: "text.disabled",
+							}}
+						>
 							Mock mode is on — any email &amp; password will sign you in.
-						</p>
+						</Typography>
 					) : null}
-				</div>
-			</div>
-		</div>
+				</Card>
+			</Box>
+		</Box>
 	);
 }

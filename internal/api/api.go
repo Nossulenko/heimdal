@@ -11,10 +11,10 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/kaizenprojects/relaygw/internal/auth"
-	"github.com/kaizenprojects/relaygw/internal/cryptox"
-	"github.com/kaizenprojects/relaygw/internal/httpx"
-	"github.com/kaizenprojects/relaygw/internal/store"
+	"github.com/nossulenko/heimdal/internal/auth"
+	"github.com/nossulenko/heimdal/internal/cryptox"
+	"github.com/nossulenko/heimdal/internal/httpx"
+	"github.com/nossulenko/heimdal/internal/store"
 )
 
 // API holds the management API dependencies.
