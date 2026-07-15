@@ -7,7 +7,7 @@
 
 <p align="center">
   One OpenAI-compatible API for every model — route, cache, meter, and bill across providers.<br/>
-  A tiny, self-hosted <a href="https://openrouter.ai">OpenRouter</a> you fully own.
+  Your own self-hosted, multi-provider LLM gateway.
 </p>
 
 <p align="center">
