@@ -123,6 +123,7 @@ func (s *Server) routes(cfg *config.Config, authn *auth.Authenticator, gw *gatew
 
 			r.Get("/models", mgmt.ListModels)
 			r.Get("/usage", mgmt.Usage)
+			r.Get("/usage/recent", mgmt.RecentUsage)
 			r.Get("/balance", mgmt.Balance)
 			r.Get("/invoices", mgmt.Invoices)
 

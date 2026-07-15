@@ -128,9 +128,14 @@ func (h *Handler) handleBuffered(w http.ResponseWriter, r *http.Request, req *ll
 		} else if hit {
 			w.Header().Set("X-Cache", "HIT")
 			httpx.WriteJSON(w, http.StatusOK, cached)
-			// A cache hit costs nothing upstream: meter it at zero cost.
+			// A cache hit costs nothing upstream: meter it at zero cost, and
+			// record the savings (what those tokens would have cost).
+			var savings int64
+			if in, out, ok := h.router.PrimaryPrice(req.Model); ok {
+				savings = billing.CostMicroUSD(in, out, cached.Usage.PromptTokens, cached.Usage.CompletionTokens)
+			}
 			h.recordTokens(meta, router.Route{Provider: "cache"},
-				cached.Usage.PromptTokens, cached.Usage.CompletionTokens, 0, "cache_hit", false)
+				cached.Usage.PromptTokens, cached.Usage.CompletionTokens, 0, savings, "cache_hit", false)
 			return
 		}
 	}
@@ -164,7 +169,7 @@ func (h *Handler) handleBuffered(w http.ResponseWriter, r *http.Request, req *ll
 			h.log.Warn("cache set failed", "err", err)
 		}
 	}
-	h.recordTokens(meta, route, pt, ct, cost, "success", estimated)
+	h.recordTokens(meta, route, pt, ct, cost, 0, "success", estimated)
 }
 
 func noCache(r *http.Request) bool {
@@ -252,7 +257,7 @@ func (h *Handler) finishStream(w http.ResponseWriter, flusher http.Flusher, meta
 		estimated = true
 	}
 	cost := billing.CostMicroUSD(route.InputPricePerToken, route.OutputPricePerToken, pt, ct)
-	h.recordTokens(meta, route, pt, ct, cost, status, estimated)
+	h.recordTokens(meta, route, pt, ct, cost, 0, status, estimated)
 }
 
 func (h *Handler) writeRouteError(w http.ResponseWriter, err error) {
@@ -272,10 +277,10 @@ func (h *Handler) writeRouteError(w http.ResponseWriter, err error) {
 }
 
 func (h *Handler) record(meta requestMeta, route router.Route, pt, ct int, status string, estimated bool) {
-	h.recordTokens(meta, route, pt, ct, 0, status, estimated)
+	h.recordTokens(meta, route, pt, ct, 0, 0, status, estimated)
 }
 
-func (h *Handler) recordTokens(meta requestMeta, route router.Route, pt, ct int, cost int64, status string, estimated bool) {
+func (h *Handler) recordTokens(meta requestMeta, route router.Route, pt, ct int, cost, savings int64, status string, estimated bool) {
 	var keyID *string
 	if meta.apiKeyID != "" {
 		keyID = &meta.apiKeyID
@@ -292,6 +297,7 @@ func (h *Handler) recordTokens(meta requestMeta, route router.Route, pt, ct int,
 		PromptTokens:     pt,
 		CompletionTokens: ct,
 		CostMicroUSD:     cost,
+		SavingsMicroUSD:  savings,
 		LatencyMS:        int(time.Since(meta.start).Milliseconds()),
 		Status:           status,
 		Estimated:        estimated,

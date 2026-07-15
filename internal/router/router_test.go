@@ -226,6 +226,22 @@ func TestSortByLatency(t *testing.T) {
 	}
 }
 
+func TestPrimaryPrice(t *testing.T) {
+	rt := New(pricedRegistry(), map[string]llm.Provider{}, fakeResolver{}, NewBreakers(5, time.Minute), discardLog())
+
+	in, out, ok := rt.PrimaryPrice("m") // primary = a @ 1.0/1.0
+	if !ok || in != 1.0 || out != 1.0 {
+		t.Errorf("logical primary price = %v/%v ok=%v, want 1/1 true", in, out, ok)
+	}
+	// Pinned model recovers its price from the registry index.
+	if in, out, ok := rt.PrimaryPrice("b/bm"); !ok || in != 0.1 || out != 0.1 {
+		t.Errorf("pinned price = %v/%v ok=%v, want 0.1/0.1 true", in, out, ok)
+	}
+	if _, _, ok := rt.PrimaryPrice("nope"); ok {
+		t.Error("unknown model should return ok=false")
+	}
+}
+
 func TestCircuitBreakerLifecycle(t *testing.T) {
 	now := time.Unix(1000, 0)
 	b := NewBreakers(2, time.Minute)

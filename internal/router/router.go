@@ -89,6 +89,17 @@ func (r *Router) resolve(model string) ([]Route, bool) {
 	return r.registry.Resolve(model)
 }
 
+// PrimaryPrice returns the per-token input/output price of the primary
+// candidate for a model string (logical or "provider/model"), for valuing
+// savings on cache hits. ok is false if the model can't be resolved.
+func (r *Router) PrimaryPrice(model string) (inputPerToken, outputPerToken float64, ok bool) {
+	routes, found := r.resolve(model)
+	if !found || len(routes) == 0 {
+		return 0, 0, false
+	}
+	return routes[0].InputPricePerToken, routes[0].OutputPricePerToken, true
+}
+
 // candidate runs one closure against the ordered candidate list, applying
 // credential resolution, circuit breaking, and fallback. It returns the Route
 // that succeeded. The closure performs the actual provider call.

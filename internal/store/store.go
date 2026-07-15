@@ -112,6 +112,7 @@ type UsageRecord struct {
 	PromptTokens     int
 	CompletionTokens int
 	CostMicroUSD     int64
+	SavingsMicroUSD  int64
 	LatencyMS        int
 	Status           string
 	Estimated        bool
