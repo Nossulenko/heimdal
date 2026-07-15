@@ -203,6 +203,29 @@ func TestSortByCost(t *testing.T) {
 	}
 }
 
+func TestSortByLatency(t *testing.T) {
+	a := &fakeProvider{name: "a", resp: okResp()}
+	b := &fakeProvider{name: "b", resp: okResp()}
+	rt := New(twoCandidateRegistry(), map[string]llm.Provider{"a": a, "b": b},
+		fakeResolver{}, NewBreakers(5, time.Minute), discardLog())
+
+	// Seed history: primary "a" is slow, "b" is fast.
+	rt.latency.Record("a", 500)
+	rt.latency.Record("b", 50)
+
+	_, route, err := rt.Chat(context.Background(), "org",
+		&llm.ChatRequest{Model: "m", Messages: []llm.Message{{Content: "hi"}}}, Options{SortByLatency: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if route.Provider != "b" {
+		t.Errorf("latency route = %q, want b (fastest)", route.Provider)
+	}
+	if a.calls != 0 || b.calls != 1 {
+		t.Errorf("calls a=%d b=%d, want a=0 b=1", a.calls, b.calls)
+	}
+}
+
 func TestCircuitBreakerLifecycle(t *testing.T) {
 	now := time.Unix(1000, 0)
 	b := NewBreakers(2, time.Minute)

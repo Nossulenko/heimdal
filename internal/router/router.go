@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/nossulenko/heimdal/internal/cryptox"
 	"github.com/nossulenko/heimdal/internal/llm"
@@ -33,12 +34,13 @@ type Router struct {
 	providers map[string]llm.Provider
 	creds     CredentialResolver
 	breakers  *Breakers
+	latency   *Latency
 	log       *slog.Logger
 }
 
 // New builds a Router. providers maps provider name -> adapter.
 func New(reg *Registry, providers map[string]llm.Provider, creds CredentialResolver, breakers *Breakers, log *slog.Logger) *Router {
-	return &Router{registry: reg, providers: providers, creds: creds, breakers: breakers, log: log}
+	return &Router{registry: reg, providers: providers, creds: creds, breakers: breakers, latency: NewLatency(), log: log}
 }
 
 // isRetryable reports whether an error should trigger a fallback to the next
@@ -65,6 +67,10 @@ type Options struct {
 	// price) before dispatch, so a multi-provider logical model routes to the
 	// least expensive available provider. Fallback still applies in cost order.
 	SortByCost bool
+	// SortByLatency reorders the candidates fastest-first (by observed EWMA
+	// latency) before dispatch. An untried provider sorts first so it is
+	// sampled. Mutually exclusive with SortByCost at the caller.
+	SortByLatency bool
 }
 
 // resolve turns a model string into candidate routes. A plain name is looked up
@@ -98,6 +104,13 @@ func (r *Router) dispatch(ctx context.Context, orgID string, logicalModel string
 		})
 		routes = sorted
 	}
+	if opts.SortByLatency && len(routes) > 1 {
+		sorted := append([]Route(nil), routes...)
+		slices.SortStableFunc(sorted, func(a, b Route) int {
+			return cmp.Compare(r.latency.Estimate(a.Provider), r.latency.Estimate(b.Provider))
+		})
+		routes = sorted
+	}
 	if opts.NoFallback && len(routes) > 1 {
 		routes = routes[:1]
 	}
@@ -121,8 +134,10 @@ func (r *Router) dispatch(ctx context.Context, orgID string, logicalModel string
 			continue
 		}
 
+		start := time.Now()
 		err = call(p, apiKey, rt)
 		if err == nil {
+			r.latency.Record(rt.Provider, float64(time.Since(start).Milliseconds()))
 			r.breakers.RecordSuccess(rt.Provider)
 			return rt, nil
 		}

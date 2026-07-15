@@ -93,7 +93,8 @@ func (h *Handler) ChatCompletions(w http.ResponseWriter, r *http.Request) {
 	noFallback := r.Header.Get("x-no-fallback") == "true" || r.Header.Get("x-no-fallback") == "1"
 	xroute := r.Header.Get("x-route")
 	sortByCost := xroute == "cost" || xroute == "cheapest" || xroute == "price"
-	meta := requestMeta{orgID: orgID, apiKeyID: apiKeyID, logicalModel: req.Model, start: time.Now(), noFallback: noFallback, sortByCost: sortByCost}
+	sortByLatency := xroute == "latency" || xroute == "fastest"
+	meta := requestMeta{orgID: orgID, apiKeyID: apiKeyID, logicalModel: req.Model, start: time.Now(), noFallback: noFallback, sortByCost: sortByCost, sortByLatency: sortByLatency}
 	if req.Stream {
 		h.handleStream(w, r, &req, meta)
 	} else {
@@ -102,16 +103,17 @@ func (h *Handler) ChatCompletions(w http.ResponseWriter, r *http.Request) {
 }
 
 type requestMeta struct {
-	orgID        string
-	apiKeyID     string
-	logicalModel string
-	start        time.Time
-	noFallback   bool
-	sortByCost   bool
+	orgID         string
+	apiKeyID      string
+	logicalModel  string
+	start         time.Time
+	noFallback    bool
+	sortByCost    bool
+	sortByLatency bool
 }
 
 func (m requestMeta) routeOptions() router.Options {
-	return router.Options{NoFallback: m.noFallback, SortByCost: m.sortByCost}
+	return router.Options{NoFallback: m.noFallback, SortByCost: m.sortByCost, SortByLatency: m.sortByLatency}
 }
 
 func (h *Handler) handleBuffered(w http.ResponseWriter, r *http.Request, req *llm.ChatRequest, meta requestMeta) {
