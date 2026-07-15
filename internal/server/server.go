@@ -16,6 +16,7 @@ import (
 
 	"github.com/nossulenko/heimdal/internal/api"
 	"github.com/nossulenko/heimdal/internal/auth"
+	"github.com/nossulenko/heimdal/internal/cache"
 	"github.com/nossulenko/heimdal/internal/config"
 	"github.com/nossulenko/heimdal/internal/gateway"
 	"github.com/nossulenko/heimdal/internal/httpx"
@@ -64,8 +65,13 @@ func New(cfg *config.Config, st *store.Store, rdb *redis.Client, log *slog.Logge
 	recorder := usage.NewRecorder(st, 2048, log)
 	recorder.Start()
 
+	responseCache := cache.New(rdb, cfg.CacheTTL)
+	if responseCache.Enabled() {
+		log.Info("response cache enabled", "ttl", cfg.CacheTTL.String())
+	}
+
 	authn := auth.NewAuthenticator(st, cfg.APIKeyPepper, cfg.SessionSecret, log)
-	gw := gateway.NewHandler(rt, limiter, recorder, st, log)
+	gw := gateway.NewHandler(rt, limiter, recorder, st, responseCache, log)
 	mgmt := api.New(st, api.Config{
 		Pepper:        cfg.APIKeyPepper,
 		EncKey:        cfg.EncryptionKey,

@@ -30,6 +30,7 @@ type Config struct {
 	CORSOrigins      []string
 	RequestTimeout   time.Duration
 	ShutdownTimeout  time.Duration
+	CacheTTL         time.Duration
 }
 
 // Load reads configuration from the environment and validates it. All
@@ -60,6 +61,7 @@ func Load() (*Config, error) {
 		CORSOrigins:      splitCSV(opt("CORS_ORIGINS", "http://localhost:3000")),
 		RequestTimeout:   durationEnv("REQUEST_TIMEOUT", 120*time.Second, &errs),
 		ShutdownTimeout:  durationEnv("SHUTDOWN_TIMEOUT", 15*time.Second, &errs),
+		CacheTTL:         durationEnv("CACHE_TTL", 0, &errs),
 	}
 
 	if pepper := req("API_KEY_PEPPER"); pepper != "" {

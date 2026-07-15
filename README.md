@@ -25,6 +25,9 @@ and the providers' own public API docs. See `docs/DESIGN.md` for the full design
 - **Provider credentials**: encrypted at rest with AES-256-GCM (`key_version`
   for rotation); never logged.
 - **Rate limiting**: Redis token bucket via an atomic Lua script (per org).
+- **Response caching**: optional Redis cache for deterministic (temperature
+  0/unset) completions, TTL-gated via `CACHE_TTL`, opt-out per request with
+  `x-no-cache: true`; cache hits are metered at zero cost.
 - **Metering**: async, off the response path; per-request tokens/cost/latency,
   provider-reported usage with a heuristic fallback flagged `estimated`.
 - **Billing**: prepaid balance in micro-USD integers, hard cutoff at zero;

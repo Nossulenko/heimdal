@@ -4,6 +4,7 @@
 package gateway
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"io"
@@ -13,6 +14,7 @@ import (
 
 	"github.com/nossulenko/heimdal/internal/auth"
 	"github.com/nossulenko/heimdal/internal/billing"
+	"github.com/nossulenko/heimdal/internal/cache"
 	"github.com/nossulenko/heimdal/internal/httpx"
 	"github.com/nossulenko/heimdal/internal/llm"
 	"github.com/nossulenko/heimdal/internal/ratelimit"
@@ -31,12 +33,13 @@ type Handler struct {
 	limiter  *ratelimit.Limiter
 	recorder *usage.Recorder
 	store    *store.Store
+	cache    *cache.ResponseCache
 	log      *slog.Logger
 }
 
 // NewHandler wires the gateway handler dependencies.
-func NewHandler(rt *router.Router, lim *ratelimit.Limiter, rec *usage.Recorder, st *store.Store, log *slog.Logger) *Handler {
-	return &Handler{router: rt, limiter: lim, recorder: rec, store: st, log: log}
+func NewHandler(rt *router.Router, lim *ratelimit.Limiter, rec *usage.Recorder, st *store.Store, rc *cache.ResponseCache, log *slog.Logger) *Handler {
+	return &Handler{router: rt, limiter: lim, recorder: rec, store: st, cache: rc, log: log}
 }
 
 // ChatCompletions handles POST /v1/chat/completions. It assumes GatewayAuth has
@@ -105,6 +108,24 @@ type requestMeta struct {
 }
 
 func (h *Handler) handleBuffered(w http.ResponseWriter, r *http.Request, req *llm.ChatRequest, meta requestMeta) {
+	// Cache only deterministic requests (temperature 0/unset), when enabled and
+	// not opted out for this request.
+	cacheable := h.cache.Enabled() && !noCache(r) && (req.Temperature == nil || *req.Temperature == 0)
+	var cacheKey string
+	if cacheable {
+		cacheKey = cache.Key(meta.orgID, req)
+		if cached, hit, err := h.cache.Get(r.Context(), cacheKey); err != nil {
+			h.log.Warn("cache get failed", "err", err)
+		} else if hit {
+			w.Header().Set("X-Cache", "HIT")
+			httpx.WriteJSON(w, http.StatusOK, cached)
+			// A cache hit costs nothing upstream: meter it at zero cost.
+			h.recordTokens(meta, router.Route{Provider: "cache"},
+				cached.Usage.PromptTokens, cached.Usage.CompletionTokens, 0, "cache_hit", false)
+			return
+		}
+	}
+
 	resp, route, err := h.router.Chat(r.Context(), meta.orgID, req, router.Options{NoFallback: meta.noFallback})
 	if err != nil {
 		h.writeRouteError(w, err)
@@ -123,8 +144,23 @@ func (h *Handler) handleBuffered(w http.ResponseWriter, r *http.Request, req *ll
 	}
 
 	cost := billing.CostMicroUSD(route.InputPricePerToken, route.OutputPricePerToken, pt, ct)
+	if cacheable {
+		w.Header().Set("X-Cache", "MISS")
+	}
 	httpx.WriteJSON(w, http.StatusOK, resp)
+	if cacheable {
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
+		if err := h.cache.Set(ctx, cacheKey, resp); err != nil {
+			h.log.Warn("cache set failed", "err", err)
+		}
+	}
 	h.recordTokens(meta, route, pt, ct, cost, "success", estimated)
+}
+
+func noCache(r *http.Request) bool {
+	v := r.Header.Get("x-no-cache")
+	return v == "true" || v == "1"
 }
 
 func (h *Handler) handleStream(w http.ResponseWriter, r *http.Request, req *llm.ChatRequest, meta requestMeta) {
