@@ -62,6 +62,49 @@ export function CostChart({ series }: { series: UsageSeriesPoint[] }) {
 	);
 }
 
+export function MessagesChart({ series }: { series: UsageSeriesPoint[] }) {
+	const dates = series.map((p) => p.date);
+	const reqs = series.map((p) => p.requests);
+
+	return (
+		<LineChart
+			height={CHART_HEIGHT}
+			hideLegend
+			grid={{ horizontal: true }}
+			margin={{ top: 12, right: 16, bottom: 8, left: 8 }}
+			xAxis={[
+				{
+					data: dates,
+					scaleType: "point",
+					valueFormatter: shortDate,
+					tickLabelStyle: { fontSize: 11 },
+				},
+			]}
+			yAxis={[
+				{
+					width: 52,
+					valueFormatter: (v: number) => formatCompact(v),
+				},
+			]}
+			series={[
+				{
+					data: reqs,
+					label: "Messages",
+					color: chartPalette.ink,
+					area: true,
+					showMark: false,
+					curve: "monotoneX",
+					valueFormatter: (v) => (v == null ? "" : formatNumber(v)),
+				},
+			]}
+			sx={{
+				...axisSx,
+				"& .MuiAreaElement-root": { fillOpacity: 0.08 },
+			}}
+		/>
+	);
+}
+
 export function TokensChart({ series }: { series: UsageSeriesPoint[] }) {
 	const dates = series.map((p) => p.date);
 	const prompt = series.map((p) => p.promptTokens);

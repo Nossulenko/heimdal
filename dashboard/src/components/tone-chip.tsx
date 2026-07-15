@@ -1,7 +1,7 @@
 import Chip from "@mui/material/Chip";
 import { tone as tonePalette } from "@/theme";
 
-type Tone = keyof typeof tonePalette;
+export type Tone = keyof typeof tonePalette;
 
 export function ToneChip({ label, tone }: { label: string; tone: Tone }) {
 	const c = tonePalette[tone];

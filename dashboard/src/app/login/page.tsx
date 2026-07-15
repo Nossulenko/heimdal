@@ -21,7 +21,7 @@ export default function LoginPage() {
 	const [loading, setLoading] = useState(false);
 
 	useEffect(() => {
-		if (getToken()) router.replace("/");
+		if (getToken()) router.replace("/overview");
 	}, [router]);
 
 	async function onSubmit(e: FormEvent) {
@@ -31,7 +31,7 @@ export default function LoginPage() {
 		try {
 			const res = await api.login(email, password);
 			setSession(res.token, res.org);
-			router.replace("/");
+			router.replace("/overview");
 			router.refresh();
 		} catch (err) {
 			setError(

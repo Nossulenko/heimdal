@@ -9,6 +9,7 @@ export const queryKeys = {
 	catalog: ["catalog"] as const,
 	credentials: ["credentials"] as const,
 	usage: (from: string, to: string) => ["usage", from, to] as const,
+	recentUsage: (limit: number) => ["recent-usage", limit] as const,
 	balance: ["balance"] as const,
 };
 
@@ -68,6 +69,13 @@ export function useUsage(from: string, to: string) {
 	return useQuery({
 		queryKey: queryKeys.usage(from, to),
 		queryFn: () => api.getUsage(from, to),
+	});
+}
+
+export function useRecentUsage(limit = 20) {
+	return useQuery({
+		queryKey: queryKeys.recentUsage(limit),
+		queryFn: () => api.getRecentUsage(limit),
 	});
 }
 

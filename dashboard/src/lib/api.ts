@@ -54,6 +54,7 @@ export interface CreatedCredential {
 
 export interface UsageSeriesPoint {
 	date: string;
+	requests: number;
 	costMicroUsd: number;
 	promptTokens: number;
 	completionTokens: number;
@@ -67,10 +68,25 @@ export interface UsageByModel {
 }
 
 export interface Usage {
+	totalRequests: number;
 	totalCostMicroUsd: number;
+	totalSavingsMicroUsd: number;
 	totalTokens: number;
 	series: UsageSeriesPoint[];
 	byModel: UsageByModel[];
+}
+
+export interface RecentMessage {
+	id: string;
+	logicalModel: string;
+	provider: string;
+	promptTokens: number;
+	completionTokens: number;
+	tokens: number;
+	costMicroUsd: number;
+	savingsMicroUsd: number;
+	status: string;
+	createdAt: string;
 }
 
 export interface Balance {
@@ -199,6 +215,11 @@ export const api = {
 		if (USE_MOCKS) return mock.getUsage(from, to);
 		const params = new URLSearchParams({ from, to });
 		return request<Usage>(`/api/usage?${params.toString()}`);
+	},
+
+	getRecentUsage(limit = 20): Promise<RecentMessage[]> {
+		if (USE_MOCKS) return mock.getRecentUsage(limit);
+		return request<RecentMessage[]>(`/api/usage/recent?limit=${limit}`);
 	},
 
 	getBalance(): Promise<Balance> {

@@ -6,6 +6,7 @@ import type {
 	Credential,
 	LoginResponse,
 	Model,
+	RecentMessage,
 	Usage,
 	UsageByModel,
 	UsageSeriesPoint,
@@ -202,6 +203,7 @@ export function getUsage(from: string, to: string): Promise<Usage> {
 	const series: UsageSeriesPoint[] = [];
 	let totalCost = 0;
 	let totalTokens = 0;
+	let totalRequests = 0;
 	let i = 0;
 
 	while (cursor <= last && i < 400) {
@@ -211,14 +213,20 @@ export function getUsage(from: string, to: string): Promise<Usage> {
 			(15000 + Math.random() * 25000) * wave,
 		);
 		const costMicroUsd = Math.round(promptTokens * 1.25 + completionTokens * 10);
+		const requests = Math.max(
+			1,
+			Math.round((promptTokens + completionTokens) / 1500),
+		);
 		series.push({
 			date: cursor.toISOString().slice(0, 10),
+			requests,
 			costMicroUsd,
 			promptTokens,
 			completionTokens,
 		});
 		totalCost += costMicroUsd;
 		totalTokens += promptTokens + completionTokens;
+		totalRequests += requests;
 		cursor.setDate(cursor.getDate() + 1);
 		i += 1;
 	}
@@ -230,7 +238,6 @@ export function getUsage(from: string, to: string): Promise<Usage> {
 		{ logicalModel: "gpt-5-mini", cost: 0.08, req: 0.16 },
 		{ logicalModel: "claude-haiku-4.5", cost: 0.04, req: 0.07 },
 	];
-	const totalRequests = Math.max(1, Math.round(totalTokens / 1500));
 	const byModel: UsageByModel[] = splits.map((s) => ({
 		logicalModel: s.logicalModel,
 		costMicroUsd: Math.round(totalCost * s.cost),
@@ -239,9 +246,60 @@ export function getUsage(from: string, to: string): Promise<Usage> {
 	}));
 
 	return delay(
-		{ totalCostMicroUsd: totalCost, totalTokens, series, byModel },
+		{
+			totalRequests,
+			totalCostMicroUsd: totalCost,
+			totalSavingsMicroUsd: Math.round(totalCost * 0.62),
+			totalTokens,
+			series,
+			byModel,
+		},
 		300,
 	);
+}
+
+const RECENT_MODELS = [
+	{ m: "gpt-5", p: "openai" },
+	{ m: "claude-sonnet-4.5", p: "anthropic" },
+	{ m: "gemini-2.5-pro", p: "google" },
+	{ m: "auto", p: "openai" },
+	{ m: "gpt-5-mini", p: "cache" },
+];
+const RECENT_PROMPTS = [
+	"Generate stock report",
+	"Summarize support thread",
+	"Draft release notes",
+	"Classify incoming ticket",
+	"Write unit tests",
+	"Translate onboarding email",
+];
+
+export function getRecentUsage(limit = 20): Promise<RecentMessage[]> {
+	const out: RecentMessage[] = [];
+	for (let i = 0; i < limit; i += 1) {
+		const model = RECENT_MODELS[i % RECENT_MODELS.length];
+		const promptTokens = 400 + Math.round(Math.random() * 6000);
+		const completionTokens = 100 + Math.round(Math.random() * 3000);
+		const cached = model.p === "cache";
+		const cost = cached
+			? 0
+			: Math.round(promptTokens * 1.25 + completionTokens * 10);
+		out.push({
+			id: `msg_${i}`,
+			logicalModel: model.m,
+			provider: model.p,
+			promptTokens,
+			completionTokens,
+			tokens: promptTokens + completionTokens,
+			costMicroUsd: cost,
+			savingsMicroUsd: cached
+				? Math.round(promptTokens * 1.25 + completionTokens * 10)
+				: 0,
+			status: cached ? "cache_hit" : "success",
+			createdAt: new Date(Date.now() - i * 137000).toISOString(),
+		});
+	}
+	return delay(out, 250);
 }
 
 export function getBalance(): Promise<Balance> {

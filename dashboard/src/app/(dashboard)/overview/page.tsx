@@ -1,151 +1,201 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import Box from "@mui/material/Box";
 import Card from "@mui/material/Card";
+import MenuItem from "@mui/material/MenuItem";
+import TextField from "@mui/material/TextField";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
-import ShowChartOutlinedIcon from "@mui/icons-material/ShowChartOutlined";
+import ForumOutlinedIcon from "@mui/icons-material/ForumOutlined";
+import PaymentsOutlinedIcon from "@mui/icons-material/PaymentsOutlined";
+import SavingsOutlinedIcon from "@mui/icons-material/SavingsOutlined";
 import TokenOutlinedIcon from "@mui/icons-material/TokenOutlined";
-import AccountBalanceWalletOutlinedIcon from "@mui/icons-material/AccountBalanceWalletOutlined";
-import { CostChart } from "@/components/charts";
+import { MessagesChart } from "@/components/charts";
 import { PageContainer, PageHeader } from "@/components/page-header";
+import { ProviderLogo } from "@/components/provider-logo";
 import { SectionTitle } from "@/components/section-title";
 import { StatCard } from "@/components/stat-card";
 import { EmptyState, ErrorState, LoadingState } from "@/components/states";
+import { ToneChip, type Tone } from "@/components/tone-chip";
 import { rangeForDays } from "@/lib/dates";
-import { formatDateTime, formatNumber, formatUsd } from "@/lib/format";
-import { useBalance, useUsage } from "@/lib/hooks";
+import {
+	formatCompact,
+	formatDateTime,
+	formatNumber,
+	formatUsd,
+} from "@/lib/format";
+import { useRecentUsage, useUsage } from "@/lib/hooks";
 
 const iconSx = { fontSize: 18 };
 
-export default function OverviewPage() {
-	const range = useMemo(() => rangeForDays(30), []);
-	const balance = useBalance();
-	const usage = useUsage(range.from, range.to);
+const RANGES = [
+	{ value: 7, label: "Last 7 days" },
+	{ value: 30, label: "Last 30 days" },
+	{ value: 90, label: "Last 90 days" },
+];
 
-	const topModels = useMemo(() => {
-		if (!usage.data) return [];
-		return [...usage.data.byModel]
-			.sort((a, b) => b.costMicroUsd - a.costMicroUsd)
-			.slice(0, 5);
+function statusTone(status: string): { tone: Tone; label: string } {
+	switch (status) {
+		case "success":
+			return { tone: "success", label: "Success" };
+		case "cache_hit":
+			return { tone: "info", label: "Cached" };
+		case "error":
+			return { tone: "danger", label: "Error" };
+		default:
+			return { tone: "neutral", label: status };
+	}
+}
+
+export default function OverviewPage() {
+	const [days, setDays] = useState(30);
+	const range = useMemo(() => rangeForDays(days), [days]);
+	const usage = useUsage(range.from, range.to);
+	const recent = useRecentUsage(12);
+
+	const savingsPct = useMemo(() => {
+		if (!usage.data) return null;
+		const { totalCostMicroUsd, totalSavingsMicroUsd } = usage.data;
+		const denom = totalCostMicroUsd + totalSavingsMicroUsd;
+		if (denom <= 0) return null;
+		return Math.round((totalSavingsMicroUsd / denom) * 100);
 	}, [usage.data]);
+
+	const stat = (v: string | undefined) =>
+		usage.data ? (v ?? "—") : usage.isError ? "—" : "…";
 
 	return (
 		<>
 			<PageHeader
 				title="Overview"
-				description="A snapshot of your gateway spend and usage over the last 30 days."
+				description="Real-time summary of spending, tokens, and messages."
+				actions={
+					<TextField
+						select
+						size="small"
+						value={days}
+						onChange={(e) => setDays(Number(e.target.value))}
+						sx={{ minWidth: 150 }}
+					>
+						{RANGES.map((r) => (
+							<MenuItem key={r.value} value={r.value}>
+								{r.label}
+							</MenuItem>
+						))}
+					</TextField>
+				}
 			/>
 			<PageContainer>
 				<Box
 					sx={{
 						display: "grid",
 						gap: 2,
-						gridTemplateColumns: { xs: "1fr", sm: "repeat(3, 1fr)" },
+						gridTemplateColumns: {
+							xs: "1fr",
+							sm: "repeat(2, 1fr)",
+							md: "repeat(4, 1fr)",
+						},
 					}}
 				>
 					<StatCard
-						label="Balance"
-						icon={<AccountBalanceWalletOutlinedIcon sx={iconSx} />}
-						value={
-							balance.data
-								? formatUsd(balance.data.amountMicroUsd, 2)
-								: balance.isError
-									? "—"
-									: "…"
-						}
-						sub={
-							balance.data
-								? `Updated ${formatDateTime(balance.data.updatedAt)}`
-								: undefined
-						}
+						label="Messages"
+						icon={<ForumOutlinedIcon sx={iconSx} />}
+						value={stat(usage.data && formatNumber(usage.data.totalRequests))}
 					/>
 					<StatCard
-						label="Spend · 30d"
-						icon={<ShowChartOutlinedIcon sx={iconSx} />}
-						value={
-							usage.data
-								? formatUsd(usage.data.totalCostMicroUsd)
-								: usage.isError
-									? "—"
-									: "…"
-						}
+						label="Cost"
+						icon={<PaymentsOutlinedIcon sx={iconSx} />}
+						value={stat(usage.data && formatUsd(usage.data.totalCostMicroUsd, 2))}
 					/>
 					<StatCard
-						label="Tokens · 30d"
+						label="Token usage"
 						icon={<TokenOutlinedIcon sx={iconSx} />}
-						value={
-							usage.data
-								? formatNumber(usage.data.totalTokens)
-								: usage.isError
-									? "—"
-									: "…"
-						}
+						value={stat(usage.data && formatCompact(usage.data.totalTokens))}
+					/>
+					<StatCard
+						label="Savings"
+						icon={<SavingsOutlinedIcon sx={iconSx} />}
+						value={stat(usage.data && formatUsd(usage.data.totalSavingsMicroUsd, 2))}
+						sub={savingsPct != null ? `${savingsPct}% of would-be spend` : undefined}
 					/>
 				</Box>
 
 				<Box component="section" sx={{ mt: 5 }}>
-					<SectionTitle>Daily cost</SectionTitle>
+					<SectionTitle>Messages over time</SectionTitle>
 					{usage.isLoading ? (
 						<LoadingState />
 					) : usage.isError ? (
 						<ErrorState error={usage.error} />
 					) : usage.data && usage.data.series.length > 0 ? (
 						<Card sx={{ p: 2 }}>
-							<CostChart series={usage.data.series} />
+							<MessagesChart series={usage.data.series} />
 						</Card>
 					) : (
 						<EmptyState
 							title="No usage yet"
-							description="Once you start sending requests through the gateway, your daily cost will appear here."
+							description="Once you start sending requests through the gateway, your traffic will appear here."
 						/>
 					)}
 				</Box>
 
 				<Box component="section" sx={{ mt: 5 }}>
-					<SectionTitle>Top models by spend</SectionTitle>
-					{usage.isLoading ? (
+					<SectionTitle>Recent messages</SectionTitle>
+					{recent.isLoading ? (
 						<LoadingState />
-					) : usage.isError ? (
-						<ErrorState error={usage.error} />
-					) : topModels.length > 0 ? (
+					) : recent.isError ? (
+						<ErrorState error={recent.error} />
+					) : recent.data && recent.data.length > 0 ? (
 						<TableContainer>
 							<Table>
 								<TableHead>
 									<TableRow>
+										<TableCell>Time</TableCell>
 										<TableCell>Model</TableCell>
-										<TableCell align="right">Requests</TableCell>
 										<TableCell align="right">Tokens</TableCell>
-										<TableCell align="right">Spend</TableCell>
+										<TableCell align="right">Cost</TableCell>
+										<TableCell>Status</TableCell>
 									</TableRow>
 								</TableHead>
 								<TableBody>
-									{topModels.map((m) => (
-										<TableRow key={m.logicalModel} hover>
-											<TableCell sx={{ fontWeight: 500 }}>
-												{m.logicalModel}
-											</TableCell>
-											<TableCell align="right">
-												{formatNumber(m.requests)}
-											</TableCell>
-											<TableCell align="right">{formatNumber(m.tokens)}</TableCell>
-											<TableCell align="right">
-												{formatUsd(m.costMicroUsd)}
-											</TableCell>
-										</TableRow>
-									))}
+									{recent.data.map((m) => {
+										const s = statusTone(m.status);
+										return (
+											<TableRow key={m.id} hover>
+												<TableCell sx={{ whiteSpace: "nowrap", color: "text.secondary" }}>
+													{formatDateTime(m.createdAt)}
+												</TableCell>
+												<TableCell>
+													<Box sx={{ display: "inline-flex", alignItems: "center", gap: 1 }}>
+														<ProviderLogo provider={m.provider} size={16} />
+														<Box component="span" sx={{ fontWeight: 500 }}>
+															{m.logicalModel}
+														</Box>
+													</Box>
+												</TableCell>
+												<TableCell align="right" sx={{ fontVariantNumeric: "tabular-nums" }}>
+													{formatNumber(m.tokens)}
+												</TableCell>
+												<TableCell align="right" sx={{ fontVariantNumeric: "tabular-nums" }}>
+													{formatUsd(m.costMicroUsd)}
+												</TableCell>
+												<TableCell>
+													<ToneChip label={s.label} tone={s.tone} />
+												</TableCell>
+											</TableRow>
+										);
+									})}
 								</TableBody>
 							</Table>
 						</TableContainer>
 					) : (
 						<EmptyState
-							title="No model activity"
-							description="Model-level spend will show up here after your first requests."
+							title="No messages yet"
+							description="Requests you send through the gateway will show up here."
 						/>
 					)}
 				</Box>

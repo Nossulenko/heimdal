@@ -27,7 +27,7 @@ import { clearSession, getOrg, type Org } from "@/lib/auth";
 export const SIDEBAR_WIDTH = 240;
 
 const nav = [
-	{ href: "/", label: "Overview", Icon: DashboardOutlinedIcon },
+	{ href: "/overview", label: "Overview", Icon: DashboardOutlinedIcon },
 	{ href: "/playground", label: "Playground", Icon: ChatOutlinedIcon },
 	{ href: "/keys", label: "API Keys", Icon: VpnKeyOutlinedIcon },
 	{ href: "/usage", label: "Usage", Icon: BarChartOutlinedIcon },
