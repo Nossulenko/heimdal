@@ -3,7 +3,6 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
 import Container from "@mui/material/Container";
 import InputAdornment from "@mui/material/InputAdornment";
 import TextField from "@mui/material/TextField";
@@ -13,6 +12,7 @@ import Typography from "@mui/material/Typography";
 import SearchIcon from "@mui/icons-material/Search";
 import type { Model } from "@/lib/api";
 import { ProviderLogo, providerLabel } from "@/components/provider-logo";
+import { PublicHeader } from "@/components/public-header";
 import { EmptyState, ErrorState, LoadingState } from "@/components/states";
 import { formatPricePerMillion } from "@/lib/format";
 import { useCatalog } from "@/lib/hooks";
@@ -73,43 +73,7 @@ export default function CatalogPage() {
 
 	return (
 		<Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
-			<Box
-				component="header"
-				sx={{
-					borderBottom: "1px solid",
-					borderColor: "divider",
-					px: 3,
-					py: 1.5,
-					display: "flex",
-					alignItems: "center",
-					gap: 1.5,
-					position: "sticky",
-					top: 0,
-					bgcolor: "background.default",
-					zIndex: 1,
-				}}
-			>
-				<Box
-					sx={{
-						width: 28,
-						height: 28,
-						borderRadius: 1.5,
-						bgcolor: "primary.main",
-						color: "primary.contrastText",
-						display: "grid",
-						placeItems: "center",
-						fontWeight: 700,
-						fontSize: 14,
-					}}
-				>
-					H
-				</Box>
-				<Typography sx={{ fontWeight: 700 }}>Heimdal</Typography>
-				<Box sx={{ flex: 1 }} />
-				<Button component={Link} href="/login" variant="outlined" size="small">
-					Sign in
-				</Button>
-			</Box>
+			<PublicHeader />
 
 			<Container maxWidth="lg" sx={{ py: 5 }}>
 				<Typography variant="h4" sx={{ fontWeight: 700, mb: 0.5 }}>
@@ -200,6 +164,8 @@ export default function CatalogPage() {
 							return (
 								<Box
 									key={g.logicalName}
+									component={Link}
+									href={`/catalog/${encodeURIComponent(g.logicalName)}`}
 									sx={{
 										border: "1px solid",
 										borderColor: "divider",
@@ -208,6 +174,8 @@ export default function CatalogPage() {
 										display: "flex",
 										flexDirection: "column",
 										gap: 1.5,
+										textDecoration: "none",
+										color: "inherit",
 										transition: "border-color .15s",
 										"&:hover": { borderColor: "text.disabled" },
 									}}
