@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="470" height="128" viewBox="0 0 470 128" fill="none">
+  <rect x="12" y="28" width="64" height="64" rx="16" fill="#111111"/>
+  <text x="44" y="72" font-family="Inter, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="34" font-weight="700" fill="#ffffff" text-anchor="middle">H</text>
+  <text x="94" y="62" font-family="Inter, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="42" font-weight="800" fill="#111111">Heimdal</text>
+  <text x="96" y="90" font-family="Inter, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="15" font-weight="500" fill="#666666">Self-hostable, OpenAI-compatible LLM gateway</text>
+</svg>

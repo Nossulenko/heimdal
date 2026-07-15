@@ -1,160 +1,121 @@
-# Heimdal
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/logo-dark.svg">
+    <img alt="Heimdal" src="docs/assets/logo-light.svg" width="440">
+  </picture>
+</p>
 
-> A self-hostable, OpenAI-compatible **LLM gateway** — one API for every model,
-> with multi-provider routing, cost/latency-aware routing, response caching,
-> usage metering, prepaid billing, and a dashboard. Think a tiny, self-hosted
-> OpenRouter you fully own.
+<p align="center">
+  One OpenAI-compatible API for every model — route, cache, meter, and bill across providers.<br/>
+  A tiny, self-hosted <a href="https://openrouter.ai">OpenRouter</a> you fully own.
+</p>
 
-![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)
-![Go](https://img.shields.io/badge/Go-1.26-00ADD8?logo=go&logoColor=white)
-![Next.js](https://img.shields.io/badge/Next.js-App%20Router-000?logo=nextdotjs)
-![MUI](https://img.shields.io/badge/UI-MUI%20System-007FFF?logo=mui&logoColor=white)
-![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)
+<p align="center">
+  <img alt="status: alpha" src="https://img.shields.io/badge/status-alpha-orange.svg">
+  <a href="https://github.com/nossulenko/heimdal/stargazers"><img alt="stars" src="https://img.shields.io/github/stars/nossulenko/heimdal?style=flat"></a>
+  <a href="https://github.com/nossulenko/heimdal/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/nossulenko/heimdal/ci.yml?branch=main&label=CI"></a>
+  <a href="LICENSE"><img alt="license: MIT" src="https://img.shields.io/github/license/nossulenko/heimdal"></a>
+  <img alt="Go" src="https://img.shields.io/badge/Go-1.26-00ADD8?logo=go&logoColor=white">
+  <img alt="Next.js" src="https://img.shields.io/badge/Next.js-App%20Router-000?logo=nextdotjs">
+</p>
 
-Point any OpenAI SDK at Heimdal, request a model, and it routes to OpenAI,
-Anthropic, or Google Gemini behind one unified interface — normalizing every
-provider's wire format (and streaming) to the OpenAI shape. Written **clean-room**
-in Go (gateway) + Next.js/MUI (dashboard). See [`docs/DESIGN.md`](docs/DESIGN.md).
+<p align="center">
+  <img alt="Heimdal model catalog" src="docs/assets/catalog.png" width="840">
+</p>
 
-![Model catalog](docs/assets/catalog.png)
+## What is Heimdal?
+
+Point any OpenAI SDK at Heimdal, request a model, and it routes the call to OpenAI, Anthropic, or Google Gemini behind one unified interface — normalizing every provider's wire format (and streaming) to the OpenAI shape. It's a **clean-room, original implementation** in Go (gateway) + Next.js/MUI (dashboard).
+
+- 🔀 **One API, every model** — an OpenAI-compatible surface over OpenAI, Anthropic & Google Gemini. Swap providers with a model string (`openai/gpt-4o-mini`) or let a logical model (`auto`) span all three.
+- 🎛️ **Smart routing** — fallback, per-provider circuit breaking, provider pinning, and cost- or latency-based routing (`x-route: cost | latency`).
+- ⚡ **Fast & cheap** — Redis response caching and per-org token-bucket rate limiting; async metering that never blocks the response path.
+- 💳 **Billing built in** — prepaid credits in micro-USD, encrypted BYOK provider keys, and a dashboard with a public model catalog and a chat playground.
 
 ```bash
-# One API for OpenAI, Anthropic, Gemini — pick a model, or let it auto-route:
+# One API for OpenAI, Anthropic & Gemini — pick a model, or let it auto-route to the cheapest:
 curl localhost:8080/v1/chat/completions -H "Authorization: Bearer $KEY" \
   -H "x-route: cost" \
   -d '{"model":"auto","messages":[{"role":"user","content":"hello"}]}'
 ```
 
-## What works today
+## Quick start
 
-- **OpenAI-compatible surface**: `POST /v1/chat/completions` (buffered and
-  streaming SSE) and `GET /v1/models`, with an OpenAI-shaped canonical
-  representation internally. Pin a provider with a `provider/model` model string
-  (e.g. `openai/gpt-4o-mini`), and/or send `x-no-fallback: true` to disable
-  fallback — handy for isolating a specific provider when debugging.
-- **Providers**: OpenAI (near-passthrough), Anthropic (full translation of the
-  `/v1/messages` shape and typed event stream → canonical chunks), and Google
-  Gemini (`generateContent` + SSE `streamGenerateContent`). Adding one is just a
-  new `Provider` implementation.
-- **Routing**: logical model → ordered provider candidates, with fallback on
-  transient failures, per-provider circuit breaking, and explicit-only
-  cross-provider fallback. Fallback happens only before the first streamed byte.
-  Send `x-route: cost` (cheapest) or `x-route: latency` (fastest, by observed
-  per-provider EWMA) to steer a multi-provider model.
-- **Auth**: gateway API keys hashed with HMAC-SHA-256 (+ server pepper);
-  dashboard users with bcrypt passwords; stateless signed session tokens.
-- **Provider credentials**: encrypted at rest with AES-256-GCM (`key_version`
-  for rotation); never logged.
-- **Rate limiting**: Redis token bucket via an atomic Lua script (per org).
-- **Response caching**: optional Redis cache for deterministic (temperature
-  0/unset) completions, TTL-gated via `CACHE_TTL`, opt-out per request with
-  `x-no-cache: true`; cache hits are metered at zero cost.
-- **Metering**: async, off the response path; per-request tokens/cost/latency,
-  provider-reported usage with a heuristic fallback flagged `estimated`.
-- **Billing**: prepaid balance in micro-USD integers, hard cutoff at zero;
-  payments stubbed behind an interface (no live secrets in code).
-- **Management API**: login, API keys, provider credentials, model registry,
-  usage aggregation, balance/invoices — all org-scoped from the session.
-- **Dashboard**: a decoupled Next.js app in `dashboard/`, styled with MUI System
-  + MUI X Charts — overview, usage charts, API keys, provider keys, a public
-  model catalog, and an in-app chat playground.
-
-![Dashboard](docs/assets/dashboard.png)
-
-## Quickstart (Docker)
+**Docker (full stack):**
 
 ```bash
-cp .env.example .env          # dev defaults; change secrets for real use
-make dev                      # postgres + redis + gateway (runs migrate + seed)
+cp .env.example .env    # dev defaults; change the secrets for real use
+make dev                # postgres + redis + gateway (runs migrate + seed)
 ```
 
-The gateway listens on `:8080`. Seeded dashboard login: `admin@example.com` /
-`changeme`, with a $10 starting balance.
+The gateway listens on `:8080`. Seeded dashboard login: `admin@example.com` / `changeme`, with a $10 starting balance.
 
-## Quickstart (local Go)
+**Local (Go + Node):**
 
 ```bash
 cp .env.example .env
-make infra                    # just postgres + redis in Docker
-make setup                    # migrate + seed
-make run                      # go run ./cmd/gateway
+make infra              # just postgres + redis in Docker
+make setup              # migrate + seed
+make run                # gateway (go run ./cmd/gateway)
+
+cd dashboard && pnpm install && pnpm dev   # dashboard on :3000
 ```
 
-> If a native Postgres already owns `localhost:5432`, drop a
-> `docker-compose.override.yml` remapping the port (e.g. `5433:5432`) and point
-> `DATABASE_URL` at it — no need to stop your local Postgres.
+Then add a provider key under **Provider Keys**, mint an API key under **API Keys**, and call `/v1/chat/completions` like OpenAI — or try it in the **Playground**.
 
-### Try it
+## Providers
 
-```bash
-# 1. log in -> session token
-TOKEN=$(curl -s localhost:8080/api/auth/login -d '{"email":"admin@example.com","password":"changeme"}' \
-  | sed -n 's/.*"token":"\([^"]*\)".*/\1/p')
+Adding a provider is one `Provider` implementation — translation in, translation out. No core changes.
 
-# 2. add an upstream credential (your real OpenAI key)
-curl -s localhost:8080/api/credentials -H "Authorization: Bearer $TOKEN" \
-  -d '{"provider":"openai","apiKey":"sk-..."}'
+| Provider | Chat | Streaming | How it's called |
+|---|:---:|:---:|---|
+| **OpenAI** | ✅ | ✅ | native (the canonical shape) |
+| **Anthropic** | ✅ | ✅ | `/v1/messages` + typed event stream, translated |
+| **Google Gemini** | ✅ | ✅ | `generateContent` + `alt=sse` stream, translated |
 
-# 3. mint a gateway API key (plaintext shown once)
-KEY=$(curl -s localhost:8080/api/keys -H "Authorization: Bearer $TOKEN" -d '{"name":"dev"}' \
-  | sed -n 's/.*"plaintext":"\([^"]*\)".*/\1/p')
+## Dashboard
 
-# 4. call it like OpenAI
-curl -sN localhost:8080/v1/chat/completions -H "Authorization: Bearer $KEY" \
-  -d '{"model":"gpt-4o-mini","stream":true,"messages":[{"role":"user","content":"hi"}]}'
-```
+A decoupled Next.js app (`dashboard/`) styled with **MUI System** + **MUI X Charts**: overview & usage charts, API keys, encrypted provider keys, a public **model catalog**, model detail pages, and an in-app streaming **chat playground**.
 
-## Commands
+<p align="center">
+  <img alt="Heimdal dashboard" src="docs/assets/dashboard.png" width="840">
+</p>
 
-| Command | Description |
-|---|---|
-| `make run` | Run the gateway locally |
-| `make build` | Build `bin/gateway`, `bin/migrate`, `bin/seed` |
-| `make test` | `go test -race ./...` |
-| `make lint` | `go vet` (+ golangci-lint if installed) |
-| `make migrate-up` / `migrate-down` | Apply / roll back migrations |
-| `make seed` | Seed demo org, admin user, models, balance |
-| `make infra` | Start only Postgres + Redis |
-| `make dev` | Full stack in Docker |
-| `make setup` | infra + migrate + seed |
+## How it works
+
+A request flows: **auth → balance gate → rate limit → route resolution → provider call → (stream | buffer) → async meter + bill.** Fallback only happens before the first byte reaches the client; streaming is SSE, first-class. The full design (request lifecycle, `Provider` interface, data model, routing) is in [`docs/DESIGN.md`](docs/DESIGN.md).
+
+Key decisions: API keys hashed with HMAC-SHA-256 (+ pepper); provider credentials encrypted at rest (AES-256-GCM); money as exact micro-USD integers; deterministic responses cached in Redis; usage metered off the response path.
 
 ## Project layout
 
 ```
 cmd/gateway        server entrypoint (graceful shutdown)
-cmd/migrate        migration runner (goose, embedded SQL)
-cmd/seed           demo data
-internal/config    env config + startup validation
-internal/llm       canonical types + Provider interface
-  llm/openai       OpenAI adapter
-  llm/anthropic    Anthropic adapter (translation + stream state machine)
-internal/sse       SSE reader
-internal/router    registry, fallback dispatch, circuit breaker
-internal/auth      API-key + session auth middleware
-internal/cryptox   HMAC key hashing, bcrypt, AES-GCM
-internal/store     Postgres repositories (pgx, no ORM)
-internal/ratelimit Redis token-bucket limiter
-internal/usage     async metering writer
-internal/billing   cost math + prepaid rules + payment stub
-internal/gateway   /v1 chat handler (buffered + streaming)
-internal/api       management/dashboard JSON API
-internal/server    wiring, middleware, health/readiness
+cmd/migrate,seed   migrations + demo data
+internal/llm       canonical types + Provider interface (+ openai, anthropic, google adapters)
+internal/router    registry, fallback, circuit breaker, cost/latency routing
+internal/gateway   /v1 chat handler (buffered + streaming) + /v1/models
+internal/api       management/dashboard JSON API (+ public catalog)
+internal/{auth,cryptox,store,ratelimit,usage,billing,cache,config,server}
 migrations         goose SQL migrations (embedded)
-dashboard          Next.js frontend, MUI System + MUI X Charts (decoupled)
+dashboard          Next.js + MUI System frontend
 docs/DESIGN.md     design document
 ```
 
-## Testing
+## Development
 
-`make test` runs the unit suite (config validation, crypto round-trips, SSE
-parsing, both provider adapters against mocked upstreams, router fallback +
-circuit breaker, billing math, session tokens, and the lossless async recorder)
-with the race detector.
+```bash
+make test      # go test -race ./...
+make lint      # go vet (+ golangci-lint if installed)
+make build     # bin/gateway, bin/migrate, bin/seed
+```
 
-## Security notes
+Unit tests (race) cover config, crypto, SSE parsing, all three provider adapters (against mocked upstreams), router fallback + circuit breaker + cost/latency routing, billing math, sessions, and the lossless async recorder. CI runs the Go suite and the dashboard build on every push.
 
-- API keys and provider credentials are never stored or logged in plaintext.
-- Every management endpoint derives the org from the authenticated session,
-  never from the request body.
-- Config is validated at startup; missing/invalid secrets fail fast.
-- No `panic` in request paths; graceful shutdown drains the metering buffer.
+## Status & roadmap
+
+Alpha. The gateway, routing, dashboard, catalog, and playground work end-to-end (verified against real Postgres/Redis with mock upstreams). Not yet: live-provider integration tests, real payment processing (stubbed behind an interface), signup/registration, and production hardening. Contributions welcome.
+
+## License
+
+[MIT](LICENSE) © Nikolai Nossulenko
