@@ -87,7 +87,8 @@ func (h *Handler) ChatCompletions(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	meta := requestMeta{orgID: orgID, apiKeyID: apiKeyID, logicalModel: req.Model, start: time.Now()}
+	noFallback := r.Header.Get("x-no-fallback") == "true" || r.Header.Get("x-no-fallback") == "1"
+	meta := requestMeta{orgID: orgID, apiKeyID: apiKeyID, logicalModel: req.Model, start: time.Now(), noFallback: noFallback}
 	if req.Stream {
 		h.handleStream(w, r, &req, meta)
 	} else {
@@ -100,10 +101,11 @@ type requestMeta struct {
 	apiKeyID     string
 	logicalModel string
 	start        time.Time
+	noFallback   bool
 }
 
 func (h *Handler) handleBuffered(w http.ResponseWriter, r *http.Request, req *llm.ChatRequest, meta requestMeta) {
-	resp, route, err := h.router.Chat(r.Context(), meta.orgID, req)
+	resp, route, err := h.router.Chat(r.Context(), meta.orgID, req, router.Options{NoFallback: meta.noFallback})
 	if err != nil {
 		h.writeRouteError(w, err)
 		h.record(meta, route, 0, 0, "error", false)
@@ -132,7 +134,7 @@ func (h *Handler) handleStream(w http.ResponseWriter, r *http.Request, req *llm.
 		return
 	}
 
-	stream, route, err := h.router.StreamChat(r.Context(), meta.orgID, req)
+	stream, route, err := h.router.StreamChat(r.Context(), meta.orgID, req, router.Options{NoFallback: meta.noFallback})
 	if err != nil {
 		// No bytes flushed yet: a normal JSON error is still valid.
 		h.writeRouteError(w, err)

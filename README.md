@@ -10,8 +10,10 @@ and the providers' own public API docs. See `docs/DESIGN.md` for the full design
 
 ## What works today
 
-- **OpenAI-compatible surface**: `POST /v1/chat/completions`, buffered and
-  streaming (SSE), with an OpenAI-shaped canonical representation internally.
+- **OpenAI-compatible surface**: `POST /v1/chat/completions` (buffered and
+  streaming SSE) and `GET /v1/models`, with an OpenAI-shaped canonical
+  representation internally. Send `x-no-fallback: true` to pin the primary
+  provider and disable fallback (handy for isolating a provider when debugging).
 - **Providers**: OpenAI (near-passthrough) and Anthropic (full translation of
   the `/v1/messages` shape and typed event stream → canonical chunks).
 - **Routing**: logical model → ordered provider candidates, with fallback on

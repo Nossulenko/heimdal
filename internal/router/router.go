@@ -52,13 +52,24 @@ func isRetryable(err error) bool {
 	return false
 }
 
+// Options tune a single dispatch.
+type Options struct {
+	// NoFallback restricts routing to the primary candidate only; a failure is
+	// returned rather than falling back to the next provider. Useful for
+	// isolating a specific provider when debugging.
+	NoFallback bool
+}
+
 // candidate runs one closure against the ordered candidate list, applying
 // credential resolution, circuit breaking, and fallback. It returns the Route
 // that succeeded. The closure performs the actual provider call.
-func (r *Router) dispatch(ctx context.Context, orgID string, logicalModel string, call func(p llm.Provider, apiKey string, rt Route) error) (Route, error) {
+func (r *Router) dispatch(ctx context.Context, orgID string, logicalModel string, opts Options, call func(p llm.Provider, apiKey string, rt Route) error) (Route, error) {
 	routes, ok := r.registry.Resolve(logicalModel)
 	if !ok {
 		return Route{}, ErrModelNotFound
+	}
+	if opts.NoFallback && len(routes) > 1 {
+		routes = routes[:1]
 	}
 
 	var lastErr error
@@ -103,9 +114,9 @@ func (r *Router) dispatch(ctx context.Context, orgID string, logicalModel string
 }
 
 // Chat resolves and dispatches a non-streaming completion.
-func (r *Router) Chat(ctx context.Context, orgID string, req *llm.ChatRequest) (*llm.ChatResponse, Route, error) {
+func (r *Router) Chat(ctx context.Context, orgID string, req *llm.ChatRequest, opts Options) (*llm.ChatResponse, Route, error) {
 	var resp *llm.ChatResponse
-	route, err := r.dispatch(ctx, orgID, req.Model, func(p llm.Provider, apiKey string, rt Route) error {
+	route, err := r.dispatch(ctx, orgID, req.Model, opts, func(p llm.Provider, apiKey string, rt Route) error {
 		preq := *req
 		preq.Model = rt.ProviderModelID
 		out, err := p.Chat(ctx, apiKey, &preq)
@@ -122,9 +133,9 @@ func (r *Router) Chat(ctx context.Context, orgID string, req *llm.ChatRequest) (
 // is opened (and its first bytes not yet flushed) inside the candidate loop, a
 // failure to open still falls back; once the returned stream is handed back,
 // the caller owns it and mid-stream failures are not retried.
-func (r *Router) StreamChat(ctx context.Context, orgID string, req *llm.ChatRequest) (llm.ChatStream, Route, error) {
+func (r *Router) StreamChat(ctx context.Context, orgID string, req *llm.ChatRequest, opts Options) (llm.ChatStream, Route, error) {
 	var stream llm.ChatStream
-	route, err := r.dispatch(ctx, orgID, req.Model, func(p llm.Provider, apiKey string, rt Route) error {
+	route, err := r.dispatch(ctx, orgID, req.Model, opts, func(p llm.Provider, apiKey string, rt Route) error {
 		preq := *req
 		preq.Model = rt.ProviderModelID
 		s, err := p.StreamChat(ctx, apiKey, &preq)

@@ -94,6 +94,7 @@ func (s *Server) routes(cfg *config.Config, authn *auth.Authenticator, gw *gatew
 	r.Group(func(r chi.Router) {
 		r.Use(authn.GatewayAuth)
 		r.Post("/v1/chat/completions", gw.ChatCompletions)
+		r.Get("/v1/models", gw.ListModels)
 	})
 
 	// Management/dashboard API.

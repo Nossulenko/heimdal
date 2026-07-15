@@ -66,7 +66,7 @@ func TestFallbackOnRetryable(t *testing.T) {
 	rt := New(twoCandidateRegistry(), map[string]llm.Provider{"a": a, "b": b},
 		fakeResolver{}, NewBreakers(5, time.Minute), discardLog())
 
-	resp, route, err := rt.Chat(context.Background(), "org", &llm.ChatRequest{Model: "m", Messages: []llm.Message{{Content: "hi"}}})
+	resp, route, err := rt.Chat(context.Background(), "org", &llm.ChatRequest{Model: "m", Messages: []llm.Message{{Content: "hi"}}}, Options{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -87,7 +87,7 @@ func TestTerminalErrorNoFallback(t *testing.T) {
 	rt := New(twoCandidateRegistry(), map[string]llm.Provider{"a": a, "b": b},
 		fakeResolver{}, NewBreakers(5, time.Minute), discardLog())
 
-	_, route, err := rt.Chat(context.Background(), "org", &llm.ChatRequest{Model: "m", Messages: []llm.Message{{Content: "hi"}}})
+	_, route, err := rt.Chat(context.Background(), "org", &llm.ChatRequest{Model: "m", Messages: []llm.Message{{Content: "hi"}}}, Options{})
 	if err == nil {
 		t.Fatal("expected terminal error")
 	}
@@ -101,9 +101,29 @@ func TestTerminalErrorNoFallback(t *testing.T) {
 
 func TestModelNotFound(t *testing.T) {
 	rt := New(NewRegistry(), map[string]llm.Provider{}, fakeResolver{}, NewBreakers(5, time.Minute), discardLog())
-	_, _, err := rt.Chat(context.Background(), "org", &llm.ChatRequest{Model: "nope"})
+	_, _, err := rt.Chat(context.Background(), "org", &llm.ChatRequest{Model: "nope"}, Options{})
 	if !errors.Is(err, ErrModelNotFound) {
 		t.Errorf("err = %v, want ErrModelNotFound", err)
+	}
+}
+
+func TestNoFallbackOption(t *testing.T) {
+	a := &fakeProvider{name: "a", err: &llm.ProviderError{Provider: "a", Retryable: true, Message: "503"}}
+	b := &fakeProvider{name: "b", resp: okResp()}
+	rt := New(twoCandidateRegistry(), map[string]llm.Provider{"a": a, "b": b},
+		fakeResolver{}, NewBreakers(5, time.Minute), discardLog())
+
+	// With NoFallback the primary's retryable failure is returned; b is never tried.
+	_, _, err := rt.Chat(context.Background(), "org",
+		&llm.ChatRequest{Model: "m", Messages: []llm.Message{{Content: "hi"}}}, Options{NoFallback: true})
+	if err == nil {
+		t.Fatal("expected error when primary fails and fallback is disabled")
+	}
+	if a.calls != 1 {
+		t.Errorf("primary calls = %d, want 1", a.calls)
+	}
+	if b.calls != 0 {
+		t.Errorf("fallback should not be called, got %d", b.calls)
 	}
 }
 
@@ -113,7 +133,7 @@ func TestSkipMissingCredential(t *testing.T) {
 	rt := New(twoCandidateRegistry(), map[string]llm.Provider{"a": a, "b": b},
 		fakeResolver{errs: map[string]error{"a": ErrNoCredential}}, NewBreakers(5, time.Minute), discardLog())
 
-	_, route, err := rt.Chat(context.Background(), "org", &llm.ChatRequest{Model: "m", Messages: []llm.Message{{Content: "hi"}}})
+	_, route, err := rt.Chat(context.Background(), "org", &llm.ChatRequest{Model: "m", Messages: []llm.Message{{Content: "hi"}}}, Options{})
 	if err != nil {
 		t.Fatal(err)
 	}
