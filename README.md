@@ -1,9 +1,11 @@
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/logo-dark.svg">
-    <img alt="Heimdal" src="docs/assets/logo-light.svg" width="440">
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/logo-white.png">
+    <img alt="Heimdal" src="docs/assets/logo-black.png" width="88">
   </picture>
 </p>
+
+<h1 align="center">Heimdal</h1>
 
 <p align="center">
   One OpenAI-compatible API for every model — route, cache, meter, and bill across providers.<br/>
