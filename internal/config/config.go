@@ -26,6 +26,7 @@ type Config struct {
 	SessionSecret    []byte
 	OpenAIBaseURL    string
 	AnthropicBaseURL string
+	GoogleBaseURL    string
 	LogLevel         slog.Level
 	CORSOrigins      []string
 	RequestTimeout   time.Duration
@@ -58,6 +59,7 @@ func Load() (*Config, error) {
 		RedisURL:         opt("REDIS_URL", "redis://localhost:6379/0"),
 		OpenAIBaseURL:    os.Getenv("OPENAI_BASE_URL"),
 		AnthropicBaseURL: os.Getenv("ANTHROPIC_BASE_URL"),
+		GoogleBaseURL:    os.Getenv("GOOGLE_BASE_URL"),
 		CORSOrigins:      splitCSV(opt("CORS_ORIGINS", "http://localhost:3000")),
 		RequestTimeout:   durationEnv("REQUEST_TIMEOUT", 120*time.Second, &errs),
 		ShutdownTimeout:  durationEnv("SHUTDOWN_TIMEOUT", 15*time.Second, &errs),

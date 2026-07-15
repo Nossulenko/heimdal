@@ -34,6 +34,7 @@ type modelSeed struct {
 var seedModels = []modelSeed{
 	{"gpt-4o-mini", "openai", "gpt-4o-mini", 0.15e-6, 0.60e-6, 0},
 	{"claude-3-5-haiku", "anthropic", "claude-3-5-haiku-latest", 0.80e-6, 4.00e-6, 0},
+	{"gemini-2.5-flash", "google", "gemini-2.5-flash", 0.30e-6, 2.50e-6, 0},
 	// A logical "auto" model with cross-provider fallback (explicit candidates).
 	{"auto", "openai", "gpt-4o-mini", 0.15e-6, 0.60e-6, 0},
 	{"auto", "anthropic", "claude-3-5-haiku-latest", 0.80e-6, 4.00e-6, 1},

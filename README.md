@@ -15,8 +15,10 @@ and the providers' own public API docs. See `docs/DESIGN.md` for the full design
   representation internally. Pin a provider with a `provider/model` model string
   (e.g. `openai/gpt-4o-mini`), and/or send `x-no-fallback: true` to disable
   fallback — handy for isolating a specific provider when debugging.
-- **Providers**: OpenAI (near-passthrough) and Anthropic (full translation of
-  the `/v1/messages` shape and typed event stream → canonical chunks).
+- **Providers**: OpenAI (near-passthrough), Anthropic (full translation of the
+  `/v1/messages` shape and typed event stream → canonical chunks), and Google
+  Gemini (`generateContent` + SSE `streamGenerateContent`). Adding one is just a
+  new `Provider` implementation.
 - **Routing**: logical model → ordered provider candidates, with fallback on
   transient failures, per-provider circuit breaking, and explicit-only
   cross-provider fallback. Fallback happens only before the first streamed byte.

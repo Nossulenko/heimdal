@@ -22,6 +22,7 @@ import (
 	"github.com/nossulenko/heimdal/internal/httpx"
 	"github.com/nossulenko/heimdal/internal/llm"
 	"github.com/nossulenko/heimdal/internal/llm/anthropic"
+	"github.com/nossulenko/heimdal/internal/llm/google"
 	"github.com/nossulenko/heimdal/internal/llm/openai"
 	"github.com/nossulenko/heimdal/internal/ratelimit"
 	"github.com/nossulenko/heimdal/internal/router"
@@ -46,6 +47,7 @@ func New(cfg *config.Config, st *store.Store, rdb *redis.Client, log *slog.Logge
 	providers := map[string]llm.Provider{
 		"openai":    openai.New(cfg.OpenAIBaseURL, nil),
 		"anthropic": anthropic.New(cfg.AnthropicBaseURL, nil),
+		"google":    google.New(cfg.GoogleBaseURL, nil),
 	}
 
 	registry := router.NewRegistry()
