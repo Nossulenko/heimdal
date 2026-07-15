@@ -86,7 +86,6 @@ export default function PlaygroundPage() {
 	return (
 		<>
 			<PageHeader
-				icon="💬"
 				title="Playground"
 				description="Chat through the gateway with any routed model. Requests are metered against your balance."
 				actions={

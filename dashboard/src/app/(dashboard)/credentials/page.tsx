@@ -77,7 +77,6 @@ export default function CredentialsPage() {
 	return (
 		<>
 			<PageHeader
-				icon="🔌"
 				title="Provider Keys"
 				description="Upstream provider secrets used to fulfill requests. Secrets are write-only — they’re never shown again after saving."
 				actions={

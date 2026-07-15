@@ -4,13 +4,12 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 
 interface PageHeaderProps {
-	icon: string;
 	title: string;
 	description?: string;
 	actions?: ReactNode;
 }
 
-export function PageHeader({ icon, title, description, actions }: PageHeaderProps) {
+export function PageHeader({ title, description, actions }: PageHeaderProps) {
 	return (
 		<Box sx={{ borderBottom: 1, borderColor: "divider" }}>
 			<Stack
@@ -26,14 +25,9 @@ export function PageHeader({ icon, title, description, actions }: PageHeaderProp
 				}}
 			>
 				<Box>
-					<Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
-						<Box component="span" sx={{ fontSize: 28, lineHeight: 1 }}>
-							{icon}
-						</Box>
-						<Typography variant="h1" component="h1">
-							{title}
-						</Typography>
-					</Stack>
+					<Typography variant="h1" component="h1">
+						{title}
+					</Typography>
 					{description ? (
 						<Typography
 							variant="body2"

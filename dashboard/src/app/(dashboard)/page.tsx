@@ -38,7 +38,6 @@ export default function OverviewPage() {
 	return (
 		<>
 			<PageHeader
-				icon="🏠"
 				title="Overview"
 				description="A snapshot of your gateway spend and usage over the last 30 days."
 			/>

@@ -30,7 +30,6 @@ export default function BillingPage() {
 	return (
 		<>
 			<PageHeader
-				icon="💳"
 				title="Billing"
 				description="Your prepaid balance and recent spend. Payments are stubbed in this version."
 			/>

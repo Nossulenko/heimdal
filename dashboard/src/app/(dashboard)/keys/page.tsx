@@ -82,7 +82,6 @@ export default function KeysPage() {
 	return (
 		<>
 			<PageHeader
-				icon="🔑"
 				title="API Keys"
 				description="Keys authenticate requests to your gateway. Treat them like passwords."
 				actions={

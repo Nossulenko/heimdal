@@ -44,7 +44,6 @@ export default function UsagePage() {
 	return (
 		<>
 			<PageHeader
-				icon="📊"
 				title="Usage"
 				description="Track cost and token consumption across your gateway over time."
 				actions={

@@ -20,7 +20,6 @@ export default function ModelsPage() {
 	return (
 		<>
 			<PageHeader
-				icon="🧠"
 				title="Models"
 				description="The model registry your gateway can route to. Prices are shown per 1M tokens."
 			/>
