@@ -25,29 +25,44 @@ type Route struct {
 type Registry struct {
 	mu     sync.RWMutex
 	routes map[string][]Route
+	// byProviderModel indexes routes by "provider/providerModelID" so a pinned
+	// model string can recover its pricing.
+	byProviderModel map[string]Route
 }
 
 // NewRegistry returns an empty registry.
 func NewRegistry() *Registry {
-	return &Registry{routes: make(map[string][]Route)}
+	return &Registry{routes: make(map[string][]Route), byProviderModel: make(map[string]Route)}
 }
 
 // Load rebuilds the registry from active model rows. Rows are expected to be
 // ordered by (logical_name, priority) so candidates are in preference order.
 func (r *Registry) Load(models []store.Model) {
 	next := make(map[string][]Route, len(models))
+	index := make(map[string]Route, len(models))
 	for _, m := range models {
-		next[m.LogicalName] = append(next[m.LogicalName], Route{
+		rt := Route{
 			LogicalName:         m.LogicalName,
 			Provider:            m.Provider,
 			ProviderModelID:     m.ProviderModelID,
 			InputPricePerToken:  m.InputPricePerToken,
 			OutputPricePerToken: m.OutputPricePerToken,
-		})
+		}
+		next[m.LogicalName] = append(next[m.LogicalName], rt)
+		index[m.Provider+"/"+m.ProviderModelID] = rt
 	}
 	r.mu.Lock()
 	r.routes = next
+	r.byProviderModel = index
 	r.mu.Unlock()
+}
+
+// Pricing returns the registry pricing for a concrete provider model, if known.
+func (r *Registry) Pricing(provider, providerModelID string) (Route, bool) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	rt, ok := r.byProviderModel[provider+"/"+providerModelID]
+	return rt, ok
 }
 
 // Resolve returns the ordered candidate list for a logical model name.

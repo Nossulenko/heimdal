@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"strings"
 
 	"github.com/nossulenko/heimdal/internal/cryptox"
 	"github.com/nossulenko/heimdal/internal/llm"
@@ -60,11 +61,27 @@ type Options struct {
 	NoFallback bool
 }
 
+// resolve turns a model string into candidate routes. A plain name is looked up
+// in the registry (logical name -> ordered candidates). A "provider/model"
+// string pins a single provider directly, recovering pricing from the registry
+// when the concrete model is known (otherwise it routes with zero pricing).
+func (r *Router) resolve(model string) ([]Route, bool) {
+	if provider, providerModel, ok := strings.Cut(model, "/"); ok && provider != "" && providerModel != "" {
+		rt, found := r.registry.Pricing(provider, providerModel)
+		if !found {
+			rt = Route{Provider: provider, ProviderModelID: providerModel}
+		}
+		rt.LogicalName = model
+		return []Route{rt}, true
+	}
+	return r.registry.Resolve(model)
+}
+
 // candidate runs one closure against the ordered candidate list, applying
 // credential resolution, circuit breaking, and fallback. It returns the Route
 // that succeeded. The closure performs the actual provider call.
 func (r *Router) dispatch(ctx context.Context, orgID string, logicalModel string, opts Options, call func(p llm.Provider, apiKey string, rt Route) error) (Route, error) {
-	routes, ok := r.registry.Resolve(logicalModel)
+	routes, ok := r.resolve(logicalModel)
 	if !ok {
 		return Route{}, ErrModelNotFound
 	}

@@ -12,8 +12,9 @@ and the providers' own public API docs. See `docs/DESIGN.md` for the full design
 
 - **OpenAI-compatible surface**: `POST /v1/chat/completions` (buffered and
   streaming SSE) and `GET /v1/models`, with an OpenAI-shaped canonical
-  representation internally. Send `x-no-fallback: true` to pin the primary
-  provider and disable fallback (handy for isolating a provider when debugging).
+  representation internally. Pin a provider with a `provider/model` model string
+  (e.g. `openai/gpt-4o-mini`), and/or send `x-no-fallback: true` to disable
+  fallback — handy for isolating a specific provider when debugging.
 - **Providers**: OpenAI (near-passthrough) and Anthropic (full translation of
   the `/v1/messages` shape and typed event stream → canonical chunks).
 - **Routing**: logical model → ordered provider candidates, with fallback on

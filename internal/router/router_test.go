@@ -145,6 +145,27 @@ func TestSkipMissingCredential(t *testing.T) {
 	}
 }
 
+func TestProviderPinning(t *testing.T) {
+	a := &fakeProvider{name: "a", resp: okResp()}
+	b := &fakeProvider{name: "b", resp: okResp()}
+	rt := New(twoCandidateRegistry(), map[string]llm.Provider{"a": a, "b": b},
+		fakeResolver{}, NewBreakers(5, time.Minute), discardLog())
+
+	// "b/b-model" pins provider b directly, bypassing logical "m" (whose primary
+	// is a) and recovering b-model's pricing from the registry.
+	_, route, err := rt.Chat(context.Background(), "org",
+		&llm.ChatRequest{Model: "b/b-model", Messages: []llm.Message{{Content: "hi"}}}, Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if route.Provider != "b" || route.ProviderModelID != "b-model" {
+		t.Errorf("route = %+v, want provider b / b-model", route)
+	}
+	if a.calls != 0 || b.calls != 1 {
+		t.Errorf("calls a=%d b=%d, want a=0 b=1", a.calls, b.calls)
+	}
+}
+
 func TestCircuitBreakerLifecycle(t *testing.T) {
 	now := time.Unix(1000, 0)
 	b := NewBreakers(2, time.Minute)
