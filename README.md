@@ -1,12 +1,29 @@
 # Heimdal
 
-A self-hostable **LLM gateway**. It exposes an OpenAI-compatible API and routes
-requests to multiple upstream providers (OpenAI, Anthropic, …) behind one
-unified interface, with API-key management, usage/cost metering, prepaid
-billing, rate limiting, and fallback routing.
+> A self-hostable, OpenAI-compatible **LLM gateway** — one API for every model,
+> with multi-provider routing, cost/latency-aware routing, response caching,
+> usage metering, prepaid billing, and a dashboard. Think a tiny, self-hosted
+> OpenRouter you fully own.
 
-This is a **clean-room, original implementation** written from first principles
-and the providers' own public API docs. See `docs/DESIGN.md` for the full design.
+![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)
+![Go](https://img.shields.io/badge/Go-1.26-00ADD8?logo=go&logoColor=white)
+![Next.js](https://img.shields.io/badge/Next.js-App%20Router-000?logo=nextdotjs)
+![MUI](https://img.shields.io/badge/UI-MUI%20System-007FFF?logo=mui&logoColor=white)
+![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)
+
+Point any OpenAI SDK at Heimdal, request a model, and it routes to OpenAI,
+Anthropic, or Google Gemini behind one unified interface — normalizing every
+provider's wire format (and streaming) to the OpenAI shape. Written **clean-room**
+in Go (gateway) + Next.js/MUI (dashboard). See [`docs/DESIGN.md`](docs/DESIGN.md).
+
+![Model catalog](docs/assets/catalog.png)
+
+```bash
+# One API for OpenAI, Anthropic, Gemini — pick a model, or let it auto-route:
+curl localhost:8080/v1/chat/completions -H "Authorization: Bearer $KEY" \
+  -H "x-route: cost" \
+  -d '{"model":"auto","messages":[{"role":"user","content":"hello"}]}'
+```
 
 ## What works today
 
@@ -38,7 +55,11 @@ and the providers' own public API docs. See `docs/DESIGN.md` for the full design
   payments stubbed behind an interface (no live secrets in code).
 - **Management API**: login, API keys, provider credentials, model registry,
   usage aggregation, balance/invoices — all org-scoped from the session.
-- **Dashboard**: a decoupled Next.js app in `dashboard/`, styled with MUI System + MUI X Charts.
+- **Dashboard**: a decoupled Next.js app in `dashboard/`, styled with MUI System
+  + MUI X Charts — overview, usage charts, API keys, provider keys, a public
+  model catalog, and an in-app chat playground.
+
+![Dashboard](docs/assets/dashboard.png)
 
 ## Quickstart (Docker)
 
