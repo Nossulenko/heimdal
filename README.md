@@ -20,7 +20,7 @@
 </p>
 
 <p align="center">
-  <img alt="Heimdal model catalog" src="docs/assets/catalog.png" width="840">
+  <img alt="Heimdal" src="docs/assets/landing.png" width="840">
 </p>
 
 ## What is Heimdal?
