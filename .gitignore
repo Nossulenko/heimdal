@@ -1,0 +1,12 @@
+/bin/
+/.env
+/docker-compose.override.yml
+*.test
+*.out
+coverage.txt
+
+# dashboard (Node)
+/dashboard/node_modules/
+/dashboard/.next/
+/dashboard/out/
+/dashboard/.vercel/

@@ -1,0 +1,49 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: relaygw
+      POSTGRES_PASSWORD: relaygw
+      POSTGRES_DB: relaygw
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U relaygw"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+
+  gateway:
+    build: .
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      ADDR: ":8080"
+      DATABASE_URL: postgres://relaygw:relaygw@postgres:5432/relaygw?sslmode=disable
+      REDIS_URL: redis://redis:6379/0
+      API_KEY_PEPPER: dev-pepper-change-me-please
+      SESSION_SECRET: dev-session-secret-change-me
+      ENCRYPTION_KEY: 00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff
+      CORS_ORIGINS: http://localhost:3000
+    ports:
+      - "8080:8080"
+    # Apply migrations and seed, then start the server.
+    entrypoint: ["/bin/sh", "-c", "migrate up && seed && gateway"]
+
+volumes:
+  pgdata:
