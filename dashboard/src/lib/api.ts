@@ -78,6 +78,11 @@ export interface Balance {
 	updatedAt: string;
 }
 
+export interface ChatMessage {
+	role: "user" | "assistant" | "system";
+	content: string;
+}
+
 export class ApiError extends Error {
 	status: number;
 
@@ -201,3 +206,74 @@ export const api = {
 		return request<Balance>("/api/balance");
 	},
 };
+
+/**
+ * streamPlayground runs a chat through the gateway (on the session's org) and
+ * invokes onDelta for each streamed content token. Resolves when the stream
+ * ends; rejects on transport/HTTP errors.
+ */
+export async function streamPlayground(
+	model: string,
+	messages: ChatMessage[],
+	onDelta: (text: string) => void,
+	signal?: AbortSignal,
+): Promise<void> {
+	if (USE_MOCKS) {
+		const demo = "This is a mock streamed response from the Heimdal playground.";
+		for (const word of demo.split(" ")) {
+			await new Promise((r) => setTimeout(r, 40));
+			onDelta(word + " ");
+		}
+		return;
+	}
+
+	const token = getToken();
+	const res = await fetch(`${API_URL}/api/playground/chat`, {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+			...(token ? { Authorization: `Bearer ${token}` } : {}),
+		},
+		body: JSON.stringify({ model, messages, stream: true }),
+		signal,
+	});
+	if (!res.ok || !res.body) {
+		let message = `Request failed (${res.status})`;
+		try {
+			const data: unknown = await res.json();
+			if (data && typeof data === "object" && "error" in data) {
+				const err = (data as { error?: { message?: string } }).error;
+				if (err?.message) message = err.message;
+			}
+		} catch {
+			// keep default
+		}
+		throw new ApiError(res.status, message);
+	}
+
+	const reader = res.body.getReader();
+	const decoder = new TextDecoder();
+	let buffer = "";
+	for (;;) {
+		const { done, value } = await reader.read();
+		if (done) break;
+		buffer += decoder.decode(value, { stream: true });
+		const parts = buffer.split("\n\n");
+		buffer = parts.pop() ?? "";
+		for (const part of parts) {
+			const line = part.trim();
+			if (!line.startsWith("data:")) continue;
+			const data = line.slice(5).trim();
+			if (data === "[DONE]") return;
+			try {
+				const chunk = JSON.parse(data) as {
+					choices?: { delta?: { content?: string } }[];
+				};
+				const delta = chunk.choices?.[0]?.delta?.content;
+				if (typeof delta === "string") onDelta(delta);
+			} catch {
+				// ignore keep-alive / non-JSON frames
+			}
+		}
+	}
+}

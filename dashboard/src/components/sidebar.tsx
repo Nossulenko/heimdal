@@ -16,6 +16,7 @@ import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 import BarChartOutlinedIcon from "@mui/icons-material/BarChartOutlined";
 import CableOutlinedIcon from "@mui/icons-material/CableOutlined";
+import ChatOutlinedIcon from "@mui/icons-material/ChatOutlined";
 import CreditCardOutlinedIcon from "@mui/icons-material/CreditCardOutlined";
 import DashboardOutlinedIcon from "@mui/icons-material/DashboardOutlined";
 import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
@@ -27,6 +28,7 @@ export const SIDEBAR_WIDTH = 240;
 
 const nav = [
 	{ href: "/", label: "Overview", Icon: DashboardOutlinedIcon },
+	{ href: "/playground", label: "Playground", Icon: ChatOutlinedIcon },
 	{ href: "/keys", label: "API Keys", Icon: VpnKeyOutlinedIcon },
 	{ href: "/usage", label: "Usage", Icon: BarChartOutlinedIcon },
 	{ href: "/models", label: "Models", Icon: WidgetsOutlinedIcon },

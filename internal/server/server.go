@@ -125,6 +125,11 @@ func (s *Server) routes(cfg *config.Config, authn *auth.Authenticator, gw *gatew
 			r.Get("/usage", mgmt.Usage)
 			r.Get("/balance", mgmt.Balance)
 			r.Get("/invoices", mgmt.Invoices)
+
+			// Playground: run a chat through the gateway on the session's org.
+			// The gateway handler derives the org from context, which
+			// DashboardAuth provides, so it reuses balance/rate-limit/metering.
+			r.Post("/playground/chat", gw.ChatCompletions)
 		})
 	})
 
