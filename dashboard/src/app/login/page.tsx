@@ -57,19 +57,7 @@ export default function LoginPage() {
 		>
 			<Box sx={{ width: "100%", maxWidth: 380 }}>
 				<Stack direction="row" spacing={1.25} sx={{ alignItems: "center", mb: 3 }}>
-					<Box
-						sx={{
-							width: 28,
-							height: 28,
-							borderRadius: 1.5,
-							bgcolor: "primary.main",
-							color: "primary.contrastText",
-							display: "grid",
-							placeItems: "center",
-						}}
-					>
-						<HeimdalMark size={17} />
-					</Box>
+					<HeimdalMark size={30} />
 					<Typography sx={{ fontSize: "1.125rem", fontWeight: 600 }}>
 						Heimdal
 					</Typography>

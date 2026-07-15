@@ -22,7 +22,7 @@
 </p>
 
 <p align="center">
-  <img alt="Heimdal" src="docs/assets/landing.png" width="840">
+  <img alt="Heimdal demo" src="docs/assets/demo.gif" width="840">
 </p>
 
 ## What is Heimdal?

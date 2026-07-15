@@ -35,19 +35,7 @@ export function PublicHeader() {
 					color: "inherit",
 				}}
 			>
-				<Box
-					sx={{
-						width: 28,
-						height: 28,
-						borderRadius: 1.5,
-						bgcolor: "primary.main",
-						color: "primary.contrastText",
-						display: "grid",
-						placeItems: "center",
-					}}
-				>
-					<HeimdalMark size={17} />
-				</Box>
+				<HeimdalMark size={30} />
 				<Box sx={{ fontWeight: 700 }}>Heimdal</Box>
 			</Box>
 			<Box sx={{ flex: 1 }} />

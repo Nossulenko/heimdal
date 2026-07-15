@@ -64,19 +64,7 @@ export function Sidebar() {
 				spacing={1.25}
 				sx={{ alignItems: "center", height: 56, px: 2 }}
 			>
-				<Box
-					sx={{
-						width: 26,
-						height: 26,
-						borderRadius: 1.5,
-						bgcolor: "primary.main",
-						color: "primary.contrastText",
-						display: "grid",
-						placeItems: "center",
-					}}
-				>
-					<HeimdalMark size={16} />
-				</Box>
+				<HeimdalMark size={30} />
 				<Typography sx={{ fontWeight: 600, fontSize: "0.9rem" }}>
 					Heimdal
 				</Typography>
